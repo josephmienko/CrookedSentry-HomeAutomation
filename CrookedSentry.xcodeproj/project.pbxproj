@@ -27,7 +27,18 @@
 		27208ADB2EB8C5D900560E12 /* CrookedSentry.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CrookedSentry.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		27208AEA2EB8C5DB00560E12 /* CrookedSentryTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CrookedSentryTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		27208AF42EB8C5DB00560E12 /* CrookedSentryUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CrookedSentryUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		27208B0B2EB8D02100560E12 /* packet-tunnel-provioder.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "packet-tunnel-provioder.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		27208B172EB8D02100560E12 /* Exceptions for "packet-tunnel-provioder" folder in "packet-tunnel-provioder" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 27208B0A2EB8D02100560E12 /* packet-tunnel-provioder */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		27208ADD2EB8C5D900560E12 /* CrookedSentry */ = {
@@ -43,6 +54,19 @@
 		27208AF72EB8C5DB00560E12 /* CrookedSentryUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = CrookedSentryUITests;
+			sourceTree = "<group>";
+		};
+		27208B0F2EB8D02100560E12 /* packet-tunnel-provioder */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				27208B172EB8D02100560E12 /* Exceptions for "packet-tunnel-provioder" folder in "packet-tunnel-provioder" target */,
+			);
+			path = "packet-tunnel-provioder";
+			sourceTree = "<group>";
+		};
+		27208B1D2EB8D11400560E12 /* Resources */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Resources;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -69,6 +93,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		27208B082EB8D02100560E12 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
@@ -78,6 +109,8 @@
 				27208ADD2EB8C5D900560E12 /* CrookedSentry */,
 				27208AED2EB8C5DB00560E12 /* CrookedSentryTests */,
 				27208AF72EB8C5DB00560E12 /* CrookedSentryUITests */,
+				27208B0F2EB8D02100560E12 /* packet-tunnel-provioder */,
+				27208B1D2EB8D11400560E12 /* Resources */,
 				27208ADC2EB8C5D900560E12 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -88,6 +121,7 @@
 				27208ADB2EB8C5D900560E12 /* CrookedSentry.app */,
 				27208AEA2EB8C5DB00560E12 /* CrookedSentryTests.xctest */,
 				27208AF42EB8C5DB00560E12 /* CrookedSentryUITests.xctest */,
+				27208B0B2EB8D02100560E12 /* packet-tunnel-provioder.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -109,10 +143,9 @@
 			);
 			fileSystemSynchronizedGroups = (
 				27208ADD2EB8C5D900560E12 /* CrookedSentry */,
+				27208B1D2EB8D11400560E12 /* Resources */,
 			);
 			name = CrookedSentry;
-			packageProductDependencies = (
-			);
 			productName = CrookedSentry;
 			productReference = 27208ADB2EB8C5D900560E12 /* CrookedSentry.app */;
 			productType = "com.apple.product-type.application";
@@ -134,8 +167,6 @@
 				27208AED2EB8C5DB00560E12 /* CrookedSentryTests */,
 			);
 			name = CrookedSentryTests;
-			packageProductDependencies = (
-			);
 			productName = CrookedSentryTests;
 			productReference = 27208AEA2EB8C5DB00560E12 /* CrookedSentryTests.xctest */;
 			productType = "com.apple.product-type.bundle.unit-test";
@@ -157,11 +188,29 @@
 				27208AF72EB8C5DB00560E12 /* CrookedSentryUITests */,
 			);
 			name = CrookedSentryUITests;
-			packageProductDependencies = (
-			);
 			productName = CrookedSentryUITests;
 			productReference = 27208AF42EB8C5DB00560E12 /* CrookedSentryUITests.xctest */;
 			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		27208B0A2EB8D02100560E12 /* packet-tunnel-provioder */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 27208B182EB8D02100560E12 /* Build configuration list for PBXNativeTarget "packet-tunnel-provioder" */;
+			buildPhases = (
+				27208B072EB8D02100560E12 /* Sources */,
+				27208B082EB8D02100560E12 /* Frameworks */,
+				27208B092EB8D02100560E12 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				27208B0F2EB8D02100560E12 /* packet-tunnel-provioder */,
+			);
+			name = "packet-tunnel-provioder";
+			productName = "packet-tunnel-provioder";
+			productReference = 27208B0B2EB8D02100560E12 /* packet-tunnel-provioder.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -170,6 +219,9 @@
 			isa = PBXProject;
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
+				KnownAssetTags = (
+					New,
+				);
 				LastSwiftUpdateCheck = 2610;
 				LastUpgradeCheck = 2610;
 				TargetAttributes = {
@@ -184,6 +236,9 @@
 						CreatedOnToolsVersion = 26.1;
 						TestTargetID = 27208ADA2EB8C5D900560E12;
 					};
+					27208B0A2EB8D02100560E12 = {
+						CreatedOnToolsVersion = 26.1;
+					};
 				};
 			};
 			buildConfigurationList = 27208AD62EB8C5D900560E12 /* Build configuration list for PBXProject "CrookedSentry" */;
@@ -195,6 +250,10 @@
 			);
 			mainGroup = 27208AD22EB8C5D900560E12;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				27B1E24F2EB919B200D499CF /* XCRemoteSwiftPackageReference "wireguard-apple" */,
+				270EC8DF2EB986C500BB410B /* XCRemoteSwiftPackageReference "WebRTC" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 27208ADC2EB8C5D900560E12 /* Products */;
 			projectDirPath = "";
@@ -203,6 +262,7 @@
 				27208ADA2EB8C5D900560E12 /* CrookedSentry */,
 				27208AE92EB8C5DB00560E12 /* CrookedSentryTests */,
 				27208AF32EB8C5DB00560E12 /* CrookedSentryUITests */,
+				27208B0A2EB8D02100560E12 /* packet-tunnel-provioder */,
 			);
 		};
 /* End PBXProject section */
@@ -229,6 +289,13 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		27208B092EB8D02100560E12 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
@@ -247,6 +314,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		27208AF02EB8C5DB00560E12 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		27208B072EB8D02100560E12 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -308,6 +382,7 @@
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				EXCLUDED_ARCHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -322,7 +397,8 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				HOUSEHELD_PACKAGE_MAME = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
 				MTL_FAST_MATH = YES;
@@ -330,6 +406,8 @@
 				SDKROOT = iphoneos;
 				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
 				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				cam_password = DavidAlan;
+				cam_user = admin;
 			};
 			name = Debug;
 		};
@@ -372,6 +450,7 @@
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				EXCLUDED_ARCHS = "";
 				GCC_C_LANGUAGE_STANDARD = gnu17;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -380,13 +459,16 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
-				IPHONEOS_DEPLOYMENT_TARGET = 26.1;
+				HOUSEHELD_PACKAGE_MAME = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17.6;
 				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
 				MTL_ENABLE_DEBUG_INFO = NO;
 				MTL_FAST_MATH = YES;
 				SDKROOT = iphoneos;
 				SWIFT_COMPILATION_MODE = wholemodule;
 				VALIDATE_PRODUCT = YES;
+				cam_password = DavidAlan;
+				cam_user = admin;
 			};
 			name = Release;
 		};
@@ -538,6 +620,74 @@
 			};
 			name = Release;
 		};
+		27208B192EB8D02100560E12 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "packet-tunnel-provioder/packet_tunnel_provioder.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2Z5A564A29;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "packet-tunnel-provioder/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "packet-tunnel-provioder";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Me.CrookedSentry.packet-tunnel-provioder";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		27208B1A2EB8D02100560E12 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "packet-tunnel-provioder/packet_tunnel_provioder.entitlements";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 2Z5A564A29;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = "packet-tunnel-provioder/Info.plist";
+				INFOPLIST_KEY_CFBundleDisplayName = "packet-tunnel-provioder";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				IPHONEOS_DEPLOYMENT_TARGET = 17;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = "Me.CrookedSentry.packet-tunnel-provioder";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SKIP_INSTALL = YES;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
+				SUPPORTS_MAC_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SUPPORTS_XR_DESIGNED_FOR_IPHONE_IPAD = NO;
+				SWIFT_APPROACHABLE_CONCURRENCY = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -577,7 +727,35 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
+		27208B182EB8D02100560E12 /* Build configuration list for PBXNativeTarget "packet-tunnel-provioder" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				27208B192EB8D02100560E12 /* Debug */,
+				27208B1A2EB8D02100560E12 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		270EC8DF2EB986C500BB410B /* XCRemoteSwiftPackageReference "WebRTC" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/stasel/WebRTC.git";
+			requirement = {
+				branch = latest;
+				kind = branch;
+			};
+		};
+		27B1E24F2EB919B200D499CF /* XCRemoteSwiftPackageReference "wireguard-apple" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://git.zx2c4.com/wireguard-apple";
+			requirement = {
+				kind = exactVersion;
+				version = "1.0.16-27";
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
 	};
 	rootObject = 27208AD32EB8C5D900560E12 /* Project object */;
 }

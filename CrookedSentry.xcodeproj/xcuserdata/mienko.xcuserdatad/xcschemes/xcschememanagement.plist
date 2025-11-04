@@ -9,6 +9,34 @@
 			<key>orderHint</key>
 			<integer>0</integer>
 		</dict>
+		<key>packet-tunnel-provioder.xcscheme_^#shared#^_</key>
+		<dict>
+			<key>orderHint</key>
+			<integer>1</integer>
+		</dict>
+	</dict>
+	<key>SuppressBuildableAutocreation</key>
+	<dict>
+		<key>27208ADA2EB8C5D900560E12</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>27208AE92EB8C5DB00560E12</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>27208AF32EB8C5DB00560E12</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
+		<key>27208B0A2EB8D02100560E12</key>
+		<dict>
+			<key>primary</key>
+			<true/>
+		</dict>
 	</dict>
 </dict>
 </plist>

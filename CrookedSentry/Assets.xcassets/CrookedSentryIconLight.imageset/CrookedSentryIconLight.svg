@@ -1,0 +1,23 @@
+<svg width="48" height="48" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
+  <!-- Red Bird Body -->
+  <path d="M8 28C8 22 12 18 18 16C22 15 28 15 32 18C38 21 42 26 40 32C39 36 35 38 32 38C28 38 24 36 20 34C16 32 12 30 8 28Z" fill="#B91A1A"/>
+  
+  <!-- Bird Head -->
+  <path d="M32 18C34 16 36 15 38 16C40 17 41 19 40 21C39 23 37 24 35 23C33 22 32 20 32 18Z" fill="#B91A1A"/>
+  
+  <!-- Wing Detail -->
+  <path d="M22 20C26 19 30 20 32 22C30 24 26 25 22 24C20 23 20 21 22 20Z" fill="#8B0000"/>
+  
+  <!-- Tail -->
+  <path d="M8 28C6 30 4 32 6 34C8 36 10 34 12 32C14 30 12 28 8 28Z" fill="#B91A1A"/>
+  
+  <!-- Eye -->
+  <circle cx="35" cy="19" r="2" fill="white"/>
+  <circle cx="35" cy="19" r="1" fill="black"/>
+  
+  <!-- Gray Branch -->
+  <path d="M2 42C8 40 14 38 20 36C26 34 32 32 38 30C42 29 46 28 48 30" stroke="#808080" stroke-width="3" fill="none"/>
+  
+  <!-- Branch Detail -->
+  <path d="M15 38C17 36 19 34 21 36C23 38 21 40 19 40C17 40 15 40 15 38Z" stroke="#808080" stroke-width="2" fill="none"/>
+</svg>

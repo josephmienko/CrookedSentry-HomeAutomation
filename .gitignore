@@ -1,0 +1,44 @@
+# Xcode
+*.xcodeproj/*
+!*.xcodeproj/project.pbxproj
+!*.xcodeproj/xcshareddata/
+!*.xcworkspace/contents.xcworkspacedata
+!*.xcworkspace/xcshareddata/
+xcuserdata/
+*.xccheckout
+*.moved-aside
+DerivedData/
+*.hmap
+*.ipa
+*.xcuserstate
+
+# CocoaPods
+Pods/
+*.xcworkspace/xcuserdata/
+
+# Swift Package Manager
+.build/
+Package.resolved
+Packages/
+*.swiftpm/
+.swiftpm/
+
+# Coverage files
+*.profraw
+*.profdata
+
+# macOS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Temporary files
+*.tmp
+*.log
+
+# Build outputs
+*.app
+*.dSYM.zip
+*.dSYM

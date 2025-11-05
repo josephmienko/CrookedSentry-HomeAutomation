@@ -30,16 +30,6 @@
 		27208B0B2EB8D02100560E12 /* packet-tunnel-provioder.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "packet-tunnel-provioder.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		27208B172EB8D02100560E12 /* Exceptions for "packet-tunnel-provioder" folder in "packet-tunnel-provioder" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = 27208B0A2EB8D02100560E12 /* packet-tunnel-provioder */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		27208ADD2EB8C5D900560E12 /* CrookedSentry */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -56,12 +46,9 @@
 			path = CrookedSentryUITests;
 			sourceTree = "<group>";
 		};
-		27208B0F2EB8D02100560E12 /* packet-tunnel-provioder */ = {
+		27208B0F2EB8D02100560E12 /* packet-tunnel-provider */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				27208B172EB8D02100560E12 /* Exceptions for "packet-tunnel-provioder" folder in "packet-tunnel-provioder" target */,
-			);
-			path = "packet-tunnel-provioder";
+			path = "packet-tunnel-provider";
 			sourceTree = "<group>";
 		};
 		27208B1D2EB8D11400560E12 /* Resources */ = {
@@ -109,7 +96,7 @@
 				27208ADD2EB8C5D900560E12 /* CrookedSentry */,
 				27208AED2EB8C5DB00560E12 /* CrookedSentryTests */,
 				27208AF72EB8C5DB00560E12 /* CrookedSentryUITests */,
-				27208B0F2EB8D02100560E12 /* packet-tunnel-provioder */,
+				27208B0F2EB8D02100560E12 /* packet-tunnel-provider */,
 				27208B1D2EB8D11400560E12 /* Resources */,
 				27208ADC2EB8C5D900560E12 /* Products */,
 			);
@@ -205,7 +192,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				27208B0F2EB8D02100560E12 /* packet-tunnel-provioder */,
+				27208B0F2EB8D02100560E12 /* packet-tunnel-provider */,
 			);
 			name = "packet-tunnel-provioder";
 			productName = "packet-tunnel-provioder";

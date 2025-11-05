@@ -2,17 +2,72 @@
   "configurations" : [
     {
       "id" : "5EFF4071-6CF1-4967-92D9-1480050A6685",
-      "name" : "Configuration 1",
+      "name" : "Security Test Configuration",
       "options" : {
-
+        "commandLineArgumentEntries" : [
+          {
+            "argument" : "-AppleLanguages",
+            "enabled" : true
+          },
+          {
+            "argument" : "(en)",
+            "enabled" : true
+          }
+        ],
+        "environmentVariableEntries" : [
+          {
+            "key" : "SECURITY_TESTING_ENABLED",
+            "value" : "1"
+          },
+          {
+            "key" : "VPN_TESTING_MODE",
+            "value" : "1"
+          }
+        ],
+        "testTimeoutsEnabled" : true,
+        "maximumTestExecutionTimeAllowance" : 300,
+        "testRepetitionMode" : "none"
+      }
+    },
+    {
+      "id" : "A1B2C3D4-E5F6-7890-ABCD-EF1234567890",
+      "name" : "Performance Test Configuration",
+      "options" : {
+        "environmentVariableEntries" : [
+          {
+            "key" : "PERFORMANCE_TESTING_ENABLED", 
+            "value" : "1"
+          }
+        ],
+        "testTimeoutsEnabled" : true,
+        "maximumTestExecutionTimeAllowance" : 600
       }
     }
   ],
   "defaultOptions" : {
-    "testTimeoutsEnabled" : true
+    "testTimeoutsEnabled" : true,
+    "maximumTestExecutionTimeAllowance" : 180,
+    "targetForVariableExpansion" : {
+      "containerPath" : "container:CrookedSentry.xcodeproj",
+      "identifier" : "CrookedSentry",
+      "name" : "CrookedSentry"
+    }
   },
   "testTargets" : [
-
+    {
+      "target" : {
+        "containerPath" : "container:CrookedSentry.xcodeproj",
+        "identifier" : "CrookedSentryTests",
+        "name" : "CrookedSentryTests"
+      }
+    },
+    {
+      "target" : {
+        "containerPath" : "container:CrookedSentry.xcodeproj", 
+        "identifier" : "CrookedSentryUITests",
+        "name" : "CrookedSentryUITests"
+      }
+    }
   ],
   "version" : 1
 }

@@ -55,23 +55,39 @@ struct ContentView: View {
 
     @ViewBuilder
     private var eventsListView: some View {
-        VStack(spacing: 15) {
-            ForEach(filteredInProgressEvents) { event in
+        LazyVStack(spacing: 0) {
+            // In Progress Events
+            ForEach(Array(filteredInProgressEvents.enumerated()), id: \.element.id) { index, event in
                 NavigationLink(destination: EventDetailView(event: event).environmentObject(settingsStore)) {
                     EventCardView(event: event, isInProgress: true)
                         .environmentObject(settingsStore)
                 }
                 .buttonStyle(.plain)
+                
+                // Add separator if not the last in-progress event or if there are regular events
+                if index < filteredInProgressEvents.count - 1 || !filteredEvents.isEmpty {
+                    Rectangle()
+                        .fill(Color.outline)
+                        .frame(height: 1)
+                }
             }
-            ForEach(filteredEvents) { event in
+            
+            // Regular Events
+            ForEach(Array(filteredEvents.enumerated()), id: \.element.id) { index, event in
                 NavigationLink(destination: EventDetailView(event: event).environmentObject(settingsStore)) {
                     EventCardView(event: event, isInProgress: false)
                         .environmentObject(settingsStore)
                 }
                 .buttonStyle(.plain)
+                
+                // Add separator if not the last event
+                if index < filteredEvents.count - 1 {
+                    Rectangle()
+                        .fill(Color.outline)
+                        .frame(height: 1)
+                }
             }
         }
-        .padding()
         .onAppear {
             preloadTopVideos()
         }
@@ -98,32 +114,41 @@ struct ContentView: View {
         Group {
             if settingsStore.frigateBaseURL.isEmpty {
                 VStack(spacing: 20) {
+                    Image("CrookedSentryIcon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 80, height: 80)
+                    
                     Text("Welcome to Crooked Sentry!")
                         .font(.title)
+                        .foregroundColor(.onSurface)
                     Text("Please configure your Frigate server settings to get started.")
                         .font(.body)
+                        .foregroundColor(.onSurfaceVariant)
                         .multilineTextAlignment(.center)
                     Button("Open Settings") {
                         // This will trigger the settings sheet in the app
                     }
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(Color.primary)
+                    .foregroundColor(.onPrimary)
                     .cornerRadius(10)
                 }
                 .padding()
             } else {
-                MainContainerView(
-                    events: events,
-                    inProgressEvents: inProgressEvents,
-                    errorMessage: errorMessage,
-                    isLoading: isLoading,
-                    eventsListView: eventsListView,
-                    onRefreshEvents: { showLoading in
-                        await refreshEvents(showLoadingIndicator: showLoading)
-                    }
-                )
-                .environmentObject(settingsStore)
+                NavigationStack {
+                    MainContainerView(
+                        events: events,
+                        inProgressEvents: inProgressEvents,
+                        errorMessage: errorMessage,
+                        isLoading: isLoading,
+                        eventsListView: eventsListView,
+                        onRefreshEvents: { showLoading in
+                            await refreshEvents(showLoadingIndicator: showLoading)
+                        }
+                    )
+                    .environmentObject(settingsStore)
+                }
             }
         }
         .onReceive(inProgressTimer) { _ in
@@ -179,15 +204,27 @@ struct ContentView: View {
     }
 
     private func fetchFrigateEvents() async {
+        print("🚀 ContentView: Starting fetchFrigateEvents()")
+        print("🚀 ContentView: Using baseURL: \(settingsStore.frigateBaseURL)")
+        print("🚀 ContentView: API client baseURL: \(apiClient.baseURL)")
+        
         do {
             let fetchedEvents = try await apiClient.fetchEvents()
+            print("✅ ContentView: Successfully fetched \(fetchedEvents.count) events")
             events = fetchedEvents
             updateAvailableFilters(from: fetchedEvents)
             // Clear any stored error time on successful fetch
             UserDefaults.standard.removeObject(forKey: "lastNetworkErrorTime")
+            
+            if fetchedEvents.isEmpty {
+                print("⚠️ ContentView: Events array is empty - no events returned from API")
+            } else {
+                print("📋 ContentView: First event: \(fetchedEvents.first?.id ?? "unknown")")
+            }
         } catch {
             errorMessage = error.localizedDescription
-            print("Error fetching events: \(error)")
+            print("❌ ContentView: Error fetching events: \(error)")
+            print("❌ ContentView: Error type: \(type(of: error))")
             
             // Store the error time for auto-retry logic
             UserDefaults.standard.set(Date(), forKey: "lastNetworkErrorTime")

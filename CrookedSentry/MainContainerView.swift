@@ -36,72 +36,50 @@ struct MainContainerView: View {
     }
     
     var body: some View {
-        GeometryReader { geometry in
-            ZStack(alignment: .leading) {
-                // Main Content
-                VStack(spacing: 0) {
-                    // Navigation Bar
-                    CustomNavigationBar(
-                        title: selectedSection.title,
-                        isDrawerOpen: $isDrawerOpen
-                    )
-                    
-                    // Content Area
-                    ZStack {
-                        Color(.systemGroupedBackground)
-                            .ignoresSafeArea()
-                        
-                        contentView
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    }
-                }
-                .offset(x: isDrawerOpen ? 280 : 0)
-                .scaleEffect(isDrawerOpen ? 0.9 : 1.0)
-                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isDrawerOpen)
+        ZStack(alignment: .leading) {
+            // Main Content
+            VStack(spacing: 0) {
+                // Navigation Bar
+                CustomNavigationBar(
+                    title: selectedSection.title,
+                    isDrawerOpen: $isDrawerOpen
+                )
                 
-                // Navigation Drawer
-                if isDrawerOpen {
-                    NavigationDrawer(
-                        selectedSection: $selectedSection,
-                        isDrawerOpen: $isDrawerOpen
-                    )
-                    .transition(.move(edge: .leading))
-                }
-                
-                // Overlay to close drawer
-                if isDrawerOpen {
-                    Color.black.opacity(0.3)
-                        .ignoresSafeArea()
-                        .offset(x: 280)
-                        .onTapGesture {
-                            withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                                isDrawerOpen = false
-                            }
-                        }
-                }
+                // Content Area - completely free for scrolling
+                contentView
             }
-        }
-        .gesture(
-            DragGesture()
-                .onEnded { gesture in
-                    if gesture.translation.width > 100 && abs(gesture.translation.height) < 50 {
-                        withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
-                            isDrawerOpen = true
-                        }
-                    } else if gesture.translation.width < -100 && abs(gesture.translation.height) < 50 {
+            .offset(x: isDrawerOpen ? 280 : 0)
+            .scaleEffect(isDrawerOpen ? 0.9 : 1.0)
+            .animation(.spring(response: 0.6, dampingFraction: 0.8), value: isDrawerOpen)
+            
+            // Navigation Drawer
+            if isDrawerOpen {
+                NavigationDrawer(
+                    selectedSection: $selectedSection,
+                    isDrawerOpen: $isDrawerOpen
+                )
+                .transition(.move(edge: .leading))
+            }
+            
+            // Overlay to close drawer
+            if isDrawerOpen {
+                Color.black.opacity(0.3)
+                    .ignoresSafeArea()
+                    .offset(x: 280)
+                    .onTapGesture {
                         withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                             isDrawerOpen = false
                         }
                     }
-                }
-        )
+            }
+        }
     }
     
     @ViewBuilder
     private var contentView: some View {
         switch selectedSection {
         case .home:
-            HomeView()
+            HomeView(events: events, inProgressEvents: inProgressEvents)
                 .environmentObject(settingsStore)
         case .security:
             SecurityView(
@@ -119,9 +97,21 @@ struct MainContainerView: View {
         case .climate:
             ClimateView()
                 .environmentObject(settingsStore)
+        case .uv:
+            UVView()
+                .environmentObject(settingsStore)
+        case .network:
+            NetworkView()
+                .environmentObject(settingsStore)
         case .settings:
             SettingsView()
                 .environmentObject(settingsStore)
+        #if DEBUG
+        case .debug:
+            NavigationView {
+                Material3ColorTest()
+            }
+        #endif
         }
     }
 }
@@ -129,43 +119,93 @@ struct MainContainerView: View {
 struct CustomNavigationBar: View {
     let title: String
     @Binding var isDrawerOpen: Bool
+    @State private var isHamburgerPressed = false
+    @State private var isTitlePressed = false
     
     var body: some View {
-        HStack {
+        HStack(spacing: 0) {
+            // Material 3 Hamburger Button
             Button(action: {
                 withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
                     isDrawerOpen.toggle()
                 }
             }) {
                 Image(systemName: "line.horizontal.3")
-                    .font(.title2)
-                    .foregroundColor(.primary)
-                    .frame(width: 44, height: 44)
-                    .background(Color(.systemBackground))
-                    .clipShape(Circle())
-                    .shadow(color: .black.opacity(0.1), radius: 2, x: 0, y: 1)
+                    .font(.system(size: 20, weight: .medium))
+                    .foregroundColor(.onSurface) // Use onSurface for icon at rest
+                    .frame(width: 24, height: 24)
+                    .padding(16) // Creates 56x56 total touch target
+                    .background(
+                        // State layer for hover/press (72px wide × 56px tall - horizontal pill)
+                        RoundedRectangle(cornerRadius: 28) // Full radius for horizontal pill shape
+                            .fill(Color.onSurface.opacity(isHamburgerPressed ? 0.1 : 0.0))
+                            .frame(width: 72, height: 56)
+                    )
+                    // No base container at rest - just the icon
             }
+            .buttonStyle(PlainButtonStyle())
+            .scaleEffect(isHamburgerPressed ? 0.95 : 1.0)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !isHamburgerPressed {
+                            withAnimation(.easeInOut(duration: 0.1)) {
+                                isHamburgerPressed = true
+                            }
+                        }
+                    }
+                    .onEnded { _ in
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            isHamburgerPressed = false
+                        }
+                    }
+            )
+            
+            // 32px spacing (8px margin + 24px for label's hover state)
+            Spacer()
+                .frame(width: 32)
+            
+            // Material 3 App Title Button - "Crooked Sentry"
+            Button(action: {
+                // Navigate to home page
+                // This would typically be handled by the parent view
+                print("Navigate to home page")
+            }) {
+                Text("Crooked Sentry")
+                    .font(.title2)
+                    .fontWeight(.bold)
+                    .foregroundColor(.onSurface)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 12)
+                    .background(
+                        // State layer for hover/press with full radius (pill shape)
+                        Capsule()
+                            .fill(Color.onSurface.opacity(isTitlePressed ? 0.1 : 0.0))
+                    )
+            }
+            .buttonStyle(PlainButtonStyle())
+            .scaleEffect(isTitlePressed ? 0.98 : 1.0)
+            .simultaneousGesture(
+                DragGesture(minimumDistance: 0)
+                    .onChanged { _ in
+                        if !isTitlePressed {
+                            withAnimation(.easeInOut(duration: 0.1)) {
+                                isTitlePressed = true
+                            }
+                        }
+                    }
+                    .onEnded { _ in
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            isTitlePressed = false
+                        }
+                    }
+            )
             
             Spacer()
-            
-            Text(title)
-                .font(.title2)
-                .fontWeight(.semibold)
-                .foregroundColor(.primary)
-            
-            Spacer()
-            
-            // Placeholder for potential action buttons
-            Circle()
-                .fill(Color.clear)
-                .frame(width: 44, height: 44)
         }
-        .padding(.horizontal, 20)
-        .padding(.vertical, 12)
-        .background(
-            Color(.systemBackground)
-                .shadow(color: .black.opacity(0.05), radius: 1, x: 0, y: 1)
-        )
+        .padding(.horizontal, 8) // Overall 8px margin
+        .frame(height: 72) // Height as specified
+        .background(Color.surface)
     }
 }
 

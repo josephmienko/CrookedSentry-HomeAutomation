@@ -35,77 +35,48 @@ struct CameraFeedCard: View {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
                     Text(camera.toFriendlyName())
-                        .font(.headline)
-                        .foregroundColor(.white)
+                        .font(.custom("Roboto Flex", size: 32))
+                        .fontWeight(.light)
+                        .foregroundColor(.onSurface)
                     
                     HStack(spacing: 8) {
                         // Status indicator
                         Circle()
-                            .fill(player != nil ? Color.green : (isLoading ? Color.orange : Color.red))
+                            .fill(player != nil ? Color.primary : (isLoading ? Color.tertiary : Color.error))
                             .frame(width: 8, height: 8)
                         
                         Text(getStatusText())
-                            .font(.caption)
-                            .foregroundColor(.gray)
+                            .font(.subheadline)
+                            .foregroundColor(.onSurfaceVariant)
                     }
                 }
                 
                 Spacer()
-                
-                // Debug button
-                NavigationLink(destination: StreamDebugView(camera: camera, baseURL: baseURL)) {
-                    Image(systemName: "wrench.and.screwdriver")
-                        .foregroundColor(.orange)
-                        .padding(8)
-                }
-                
-                // Quality selector
-                Menu {
-                    ForEach(StreamQuality.allCases, id: \.self) { quality in
-                        Button(quality.displayName) {
-                            streamQuality = quality
-                            Task { await setupLiveStream() }
-                        }
-                    }
-                } label: {
-                    Image(systemName: "gearshape")
-                        .foregroundColor(.blue)
-                        .padding(8)
-                }
-                
-                // Expand/collapse button
-                Button(action: {
-                    withAnimation(.easeInOut(duration: 0.3)) {
-                        isExpanded.toggle()
-                    }
-                }) {
-                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                        .foregroundColor(.blue)
-                        .padding(8)
-                }
             }
-            .padding(.horizontal)
-            .padding(.vertical, 8)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 16)
             
-            // Video Feed (expandable)
+            // Expandable video section (between header and buttons)
             if isExpanded {
+                // Full width dividing line before video
+                Rectangle()
+                    .fill(Color.outlineVariant)
+                    .frame(height: 1)
+                
+                // Video Feed
                 ZStack {
-                    // Black background
-                    Color.black
+                    // Video background
+                    Color.surfaceVariant
                         .aspectRatio(16/9, contentMode: .fit)
                     
                     if isLoading {
                         VStack(spacing: 12) {
-                            if #available(iOS 15.0, *) {
-                                ProgressView()
-                                    .scaleEffect(1.2)
-                                    .tint(.white)
-                            } else {
-                                // Fallback on earlier versions
-                            }
+                            ProgressView()
+                                .scaleEffect(1.2)
+                                .tint(.primary)
                             Text("Connecting...")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+                                .font(.subheadline)
+                                .foregroundColor(.onSurfaceVariant)
                         }
                     } else if let player = player {
                         // Live video player
@@ -127,26 +98,104 @@ struct CameraFeedCard: View {
                         VStack(spacing: 12) {
                             Image(systemName: "video.slash")
                                 .font(.system(size: 40))
-                                .foregroundColor(.gray)
+                                .foregroundColor(.onSurfaceVariant)
                             Text("Camera Unavailable")
-                                .font(.caption)
-                                .foregroundColor(.gray)
+                                .font(.subheadline)
+                                .foregroundColor(.onSurfaceVariant)
                         }
                     }
                 }
-                .cornerRadius(8)
-                .padding(.horizontal)
-                .padding(.bottom, 8)
-                .transition(.slide)
+                .clipShape(Rectangle()) // Clean rectangle shape for video area
+                .transition(.asymmetric(
+                    insertion: .opacity.combined(with: .move(edge: .top)),
+                    removal: .opacity.combined(with: .move(edge: .top))
+                ))
             }
+            
+            // Full width dividing line before buttons
+            Rectangle()
+                .fill(Color.outlineVariant)
+                .frame(height: 1)
+            
+            // Action buttons row
+            HStack(spacing: 16) {
+                // Debug button
+                NavigationLink(destination: StreamDebugView(camera: camera, baseURL: baseURL)) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "wrench.and.screwdriver")
+                            .font(.system(size: 16, weight: .medium))
+                        Text("Debug")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundColor(.onTertiaryContainer)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.tertiaryContainer)
+                    .cornerRadius(20)
+                }
+                .buttonStyle(.plain)
+                
+                // Quality selector
+                Menu {
+                    ForEach(StreamQuality.allCases, id: \.self) { quality in
+                        Button(quality.displayName) {
+                            streamQuality = quality
+                            Task { await setupLiveStream() }
+                        }
+                    }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 16, weight: .medium))
+                        Text("Quality")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundColor(.onPrimaryContainer)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.primaryContainer)
+                    .cornerRadius(20)
+                }
+                
+                // Expand/collapse button
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.4)) {
+                        isExpanded.toggle()
+                    }
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.system(size: 16, weight: .medium))
+                        Text(isExpanded ? "Hide" : "Show")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                    }
+                    .foregroundColor(.onSecondaryContainer)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 10)
+                    .background(Color.secondaryContainer)
+                    .cornerRadius(20)
+                }
+                .buttonStyle(.plain)
+                
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 12)
         }
-        .background(Color(red: 25/255, green: 25/255, blue: 25/255))
-        .cornerRadius(12)
+        .background(Color.surfaceContainer)
+        .clipShape(RoundedRectangle(cornerRadius: 12))
         .overlay(
             RoundedRectangle(cornerRadius: 12)
-                .stroke(Color.gray.opacity(0.3), lineWidth: 1)
+                .stroke(Color.outline, lineWidth: 1)
         )
-        .shadow(radius: 4)
+        .onTapGesture {
+            withAnimation(.easeInOut(duration: 0.4)) {
+                isExpanded.toggle()
+            }
+        }
         .onAppear {
             // Set initial quality from settings
             if let quality = StreamQuality(rawValue: settingsStore.defaultStreamQuality) {
@@ -451,7 +500,7 @@ struct SnapshotFeedView: View {
     
     var body: some View {
         ZStack {
-            Color.black
+            Color.surfaceVariant
                 .aspectRatio(16/9, contentMode: .fit)
             
             if let image = snapshotImage {
@@ -463,10 +512,10 @@ struct SnapshotFeedView: View {
                 VStack(spacing: 12) {
                     Image(systemName: "photo")
                         .font(.system(size: 40))
-                        .foregroundColor(.gray)
+                        .foregroundColor(.onSurfaceVariant)
                     Text("Loading snapshot...")
                         .font(.caption)
-                        .foregroundColor(.gray)
+                        .foregroundColor(.onSurfaceVariant)
                 }
             }
             
@@ -478,13 +527,13 @@ struct SnapshotFeedView: View {
                         Text("SNAPSHOT MODE")
                             .font(.caption2)
                             .fontWeight(.bold)
-                            .foregroundColor(.orange)
+                            .foregroundColor(.onTertiaryContainer)
                         Text(timeAgo(from: lastUpdate))
                             .font(.caption2)
-                            .foregroundColor(.gray)
+                            .foregroundColor(.onTertiaryContainer)
                     }
                     .padding(8)
-                    .background(Color.black.opacity(0.7))
+                    .background(Color.tertiaryContainer.opacity(0.9))
                     .cornerRadius(6)
                 }
                 Spacer()
@@ -575,8 +624,32 @@ struct SnapshotFeedView: View {
 
 struct CameraFeedCard_Previews: PreviewProvider {
     static var previews: some View {
-        CameraFeedCard(camera: "front_door", baseURL: "http://192.168.1.100:5000")
+        Group {
+            // Light Mode Preview
+            VStack(spacing: 16) {
+                CameraFeedCard(camera: "front_door", baseURL: "http://192.168.1.100:5000")
+                    .environmentObject(SettingsStore())
+                
+                CameraFeedCard(camera: "back_yard", baseURL: "http://192.168.1.100:5000")
+                    .environmentObject(SettingsStore())
+            }
             .padding()
-            .background(Color.black)
+            .background(Color.background)
+            .preferredColorScheme(.light)
+            .previewDisplayName("Light Mode")
+            
+            // Dark Mode Preview
+            VStack(spacing: 16) {
+                CameraFeedCard(camera: "front_door", baseURL: "http://192.168.1.100:5000")
+                    .environmentObject(SettingsStore())
+                
+                CameraFeedCard(camera: "back_yard", baseURL: "http://192.168.1.100:5000")
+                    .environmentObject(SettingsStore())
+            }
+            .padding()
+            .background(Color.background)
+            .preferredColorScheme(.dark)
+            .previewDisplayName("Dark Mode")
+        }
     }
 }

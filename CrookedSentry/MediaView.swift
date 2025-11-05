@@ -11,8 +11,8 @@ struct MediaView: View {
     @EnvironmentObject var settingsStore: SettingsStore
     
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 20) {
+        ScrollView(.vertical, showsIndicators: true) {
+            VStack(spacing: 20) {
                 // Coming Soon Header
                 comingSoonHeader
                 
@@ -21,6 +21,7 @@ struct MediaView: View {
             }
             .padding()
         }
+        .background(Color.background)
     }
     
     private var comingSoonHeader: some View {
@@ -29,8 +30,8 @@ struct MediaView: View {
                 .font(.system(size: 64))
                 .foregroundColor(.blue)
             
-            Text("MC at the CC")
-                .font(.title)
+            Text("MC @ the CC")
+                .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
             

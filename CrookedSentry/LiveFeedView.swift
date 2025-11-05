@@ -25,33 +25,33 @@ struct LiveFeedView: View {
             VStack {
                 if isLoading {
                     ZStack {
-                        Color.black
+                        Color.background
                             .edgesIgnoringSafeArea(.all)
                         VStack(spacing: 16) {
                             ProgressView()
                                 .scaleEffect(1.5)
-                                .applyProgressTintWhite()
+                                .tint(.primary)
                             Text("Loading camera feeds...")
-                                .foregroundColor(.white)
+                                .foregroundColor(.onSurface)
                         }
                     }
                 } else if let errorMessage = errorMessage {
                     ZStack {
-                        Color.black
+                        Color.background
                             .edgesIgnoringSafeArea(.all)
                         VStack(spacing: 20) {
                             Image(systemName: "exclamationmark.triangle")
                                 .font(.system(size: 50))
-                                .foregroundColor(.orange)
+                                .foregroundColor(.error)
                             
                             Text("Connection Error")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.onSurface)
                             
                             Text(errorMessage)
                                 .font(.body)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.onSurfaceVariant)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                             
@@ -60,28 +60,28 @@ struct LiveFeedView: View {
                             }
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
+                            .background(Color.primary)
+                            .foregroundColor(.onPrimary)
                             .cornerRadius(8)
                         }
                     }
                 } else if availableCameras.isEmpty {
                     ZStack {
-                        Color.black
+                        Color.background
                             .edgesIgnoringSafeArea(.all)
                         VStack(spacing: 20) {
                             Image(systemName: "video.slash")
                                 .font(.system(size: 50))
-                                .foregroundColor(.gray)
+                                .foregroundColor(.onSurfaceVariant)
                             
                             Text("No Cameras Found")
                                 .font(.title2)
                                 .fontWeight(.bold)
-                                .foregroundColor(.white)
+                                .foregroundColor(.onSurface)
                             
                             Text("Make sure your Frigate server is running and cameras are configured.")
                                 .font(.body)
-                                .foregroundColor(.gray)
+                                .foregroundColor(.onSurfaceVariant)
                                 .multilineTextAlignment(.center)
                                 .padding(.horizontal)
                             
@@ -90,8 +90,8 @@ struct LiveFeedView: View {
                             }
                             .padding(.horizontal, 24)
                             .padding(.vertical, 12)
-                            .background(Color.blue)
-                            .foregroundColor(.white)
+                            .background(Color.primary)
+                            .foregroundColor(.onPrimary)
                             .cornerRadius(8)
                         }
                     }
@@ -107,13 +107,13 @@ struct LiveFeedView: View {
                         }
                         .padding()
                     }
-                    .background(Color.black)
+                    .background(Color.background)
                     .applyRefreshable {
                         await refreshFeeds()
                     }
                 }
             }
-            .background(Color.black)
+            .background(Color.background)
             #if !targetEnvironment(macCatalyst)
             .navigationTitle("Live Cameras")
             #endif
@@ -125,7 +125,7 @@ struct LiveFeedView: View {
                         Task { await refreshFeeds() }
                     }) {
                         Image(systemName: "arrow.clockwise")
-                            .foregroundColor(.blue)
+                            .foregroundColor(.primary)
                     }
                 }
             )
@@ -147,19 +147,19 @@ struct LiveFeedView: View {
             
             Text(getConnectionStatus())
                 .font(.caption)
-                .foregroundColor(.gray)
+                .foregroundColor(.onSurfaceVariant)
         }
     }
     
     private func getConnectionColor() -> Color {
         if isLoading {
-            return .orange
+            return .tertiary
         } else if errorMessage != nil {
-            return .red
+            return .error
         } else if !availableCameras.isEmpty {
-            return .green
+            return .primary
         } else {
-            return .gray
+            return .onSurfaceVariant
         }
     }
     
@@ -227,15 +227,6 @@ struct LiveFeedView: View {
 // MARK: - Backward-compat helpers
 
 private extension View {
-    // Apply white tint to ProgressView in iOS 15+, fallback to accentColor on earlier OSes.
-    func applyProgressTintWhite() -> some View {
-        if #available(iOS 15.0, macOS 12.0, *) {
-            return AnyView(self.tint(.white))
-        } else {
-            return AnyView(self.accentColor(.white))
-        }
-    }
-    
     // Apply refreshable only where available; otherwise return the view unchanged.
     func applyRefreshable(_ action: @escaping () async -> Void) -> some View {
         if #available(iOS 15.0, macOS 12.0, *) {
@@ -250,7 +241,16 @@ struct LiveFeedView_Previews: PreviewProvider {
     static var previews: some View {
         let settingsStore = SettingsStore()
         
-        return LiveFeedView()
-            .environmentObject(settingsStore)
+        Group {
+            LiveFeedView()
+                .environmentObject(settingsStore)
+                .preferredColorScheme(.light)
+                .previewDisplayName("Light Mode")
+            
+            LiveFeedView()
+                .environmentObject(settingsStore)
+                .preferredColorScheme(.dark)
+                .previewDisplayName("Dark Mode")
+        }
     }
 }

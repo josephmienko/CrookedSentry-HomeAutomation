@@ -23,7 +23,7 @@ enum FrigateAPIError: Error, LocalizedError {
         case .networkError(let error):
             return "Network error: \(error.localizedDescription)"
         case .decodingError(let error):
-            return "Failed to decode CC CC TV: \(error.localizedDescription)"
+            return "Failed to decode CCTV: \(error.localizedDescription)"
         case .invalidResponse:
             return "Invalid response from the Frigate API."
         case .unsupportedVersion(let version):
@@ -125,40 +125,43 @@ class FrigateAPIClient: ObservableObject {
             throw FrigateAPIError.invalidURL
         }
 
-        print("🌐 API Call: \(url)")
+        print("🌐 FrigateAPIClient: Making API call to: \(url)")
         
         do {
         let (data, response) = try await session.data(from: url)
 
         guard let httpResponse = response as? HTTPURLResponse else {
-            print("❌ Invalid HTTP response")
+            print("❌ FrigateAPIClient: Invalid HTTP response")
                 throw FrigateAPIError.invalidResponse
         }
         
-        print("📡 HTTP Response: \(httpResponse.statusCode)")
+        print("📡 FrigateAPIClient: HTTP Response: \(httpResponse.statusCode)")
+        print("📊 FrigateAPIClient: Response headers: \(httpResponse.allHeaderFields)")
+        print("📊 FrigateAPIClient: Response data size: \(data.count) bytes")
         
         guard httpResponse.statusCode == 200 else {
-            print("❌ HTTP Error: \(httpResponse.statusCode)")
+            print("❌ FrigateAPIClient: HTTP Error: \(httpResponse.statusCode)")
             if let responseString = String(data: data, encoding: .utf8) {
-                print("📄 Response body: \(responseString)")
+                print("📄 FrigateAPIClient: Error response body: \(responseString)")
             }
                 throw FrigateAPIError.invalidResponse
         }
-
-        print("📊 Response data size: \(data.count) bytes")
         
             // Debug: Log the response for troubleshooting
             if let responseString = String(data: data, encoding: .utf8) {
-                print("API Response (first 500 chars): \(String(responseString.prefix(500)))")
+                print("📄 FrigateAPIClient: API Response (first 500 chars): \(String(responseString.prefix(500)))")
             }
 
             let version = try await getVersion()
             let versionComponents = parseVersion(version)
+            print("📡 FrigateAPIClient: Frigate version: \(version)")
 
             do {
-                return try await parseEventsFromData(data, version: versionComponents)
+                let parsedEvents = try await parseEventsFromData(data, version: versionComponents)
+                print("✅ FrigateAPIClient: Successfully parsed \(parsedEvents.count) events")
+                return parsedEvents
             } catch let decodingError {
-                print("Version-based parsing failed, trying fallback: \(decodingError)")
+                print("❌ FrigateAPIClient: Version-based parsing failed, trying fallback: \(decodingError)")
                 return try await parseEventsWithFallback(data)
             }
         } catch {

@@ -21,10 +21,21 @@ struct SecurityView: View {
             .padding()
             
             if selectedTab == 0 {
+                // Events can be shown without VPN (historical data)
                 ScrollView { eventsListView }
             } else {
-                LiveFeedView().environmentObject(settingsStore)
+                // Live feeds require VPN for security
+                SecurityGate(isSecureContentRequired: VPNFeatureFlags.vpnRequiredForLiveFeeds) {
+                    LiveFeedView().environmentObject(settingsStore)
+                }
             }
+        }
+        .background(Color.background)
+        .onAppear {
+            // Update VPN manager with current Frigate URL for local network detection
+            VPNManager.shared.updateFrigateURL(settingsStore.frigateBaseURL)
+            // Check current security state
+            VPNManager.shared.checkCurrentSecurityState()
         }
     }
 }

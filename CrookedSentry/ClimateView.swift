@@ -11,8 +11,8 @@ struct ClimateView: View {
     @EnvironmentObject var settingsStore: SettingsStore
     
     var body: some View {
-        ScrollView {
-            LazyVStack(spacing: 20) {
+        ScrollView(.vertical, showsIndicators: true) {
+            VStack(spacing: 20) {
                 // Coming Soon Header
                 comingSoonHeader
                 
@@ -21,6 +21,7 @@ struct ClimateView: View {
             }
             .padding()
         }
+        .background(Color.background)
     }
     
     private var comingSoonHeader: some View {
@@ -29,8 +30,8 @@ struct ClimateView: View {
                 .font(.system(size: 64))
                 .foregroundColor(.orange)
             
-            Text("HVAC for the CC")
-                .font(.title)
+            Text("HVAC @ the CC")
+                .font(.largeTitle)
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
             

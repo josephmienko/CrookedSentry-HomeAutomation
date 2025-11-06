@@ -10,6 +10,7 @@ import SwiftUI
 struct NavigationDrawer: View {
     @Binding var selectedSection: AppSection
     @Binding var isDrawerOpen: Bool
+    @Environment(\.colorScheme) var colorScheme
     
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -34,7 +35,7 @@ struct NavigationDrawer: View {
                 LazyVStack(spacing: 4) {
                     ForEach(AppSection.allCases, id: \.self) { section in
                         NavigationDrawerItem(
-                            section: section,
+                            title: section.title,
                             isSelected: selectedSection == section
                         ) {
                             selectedSection = section
@@ -56,10 +57,27 @@ struct NavigationDrawer: View {
                     .padding(.bottom, 8)
             }
             
-            // Theme Switcher
-            ThemeSwitcher()
-                .padding(.horizontal, 16)
-                .padding(.bottom, 8)
+            // Utility Controls
+            HStack(spacing: 12) {
+                // Theme toggle pill
+                Button(action: {
+                    if let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene {
+                        let isDark = windowScene.windows.first?.overrideUserInterfaceStyle == .dark
+                        windowScene.windows.first?.overrideUserInterfaceStyle = isDark ? .light : .dark
+                    }
+                }) {
+                    Image(systemName: colorScheme == .dark ? "moon.fill" : "sun.max.fill")
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundColor(.onSurfaceVariant)
+                        .frame(width: 44, height: 44)
+                }
+                .background(Color.surfaceContainerHigh)
+                .clipShape(Circle())
+                
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 16)
             
             // Footer
             VStack(spacing: 8) {
@@ -70,7 +88,7 @@ struct NavigationDrawer: View {
                         .foregroundColor(.onSurfaceVariant)
                     
                     VStack(alignment: .leading, spacing: 2) {
-                        Text("For Laura 🤗, with ♥️, from GI Joe")
+                        Text("Made with 🤗 and ♥️ by GI Joe 🪖")
                             .font(.caption2)
                             .foregroundColor(.onSurfaceVariant)                                                     
                     }
@@ -88,58 +106,28 @@ struct NavigationDrawer: View {
 }
 
 struct NavigationDrawerItem: View {
-    let section: AppSection
+    let title: String
     let isSelected: Bool
-    let action: () -> Void
-    @State private var isPressed = false
+    let onTap: () -> Void
     
     var body: some View {
-        Button(action: action) {
-            HStack(spacing: 16) {
-                Image(systemName: section.icon)
-                    .font(.system(size: 20, weight: .medium))
-                    .foregroundColor(isSelected ? .onSecondaryContainer : .onSurface)
-                    .frame(width: 24)
-                
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(section.title)
-                        .font(.system(size: 16, weight: .medium))
-                        .foregroundColor(isSelected ? .onSecondaryContainer : .onSurface)
-                    
-                    Text(section.subtitle)
-                        .font(.caption)
-                        .foregroundColor(isSelected ? .onSecondaryContainer.opacity(0.8) : .onSurfaceVariant)
-                }
+        Button(action: onTap) {
+            HStack(spacing: 12) {
+                Text(title)
+                    .font(.body)
+                    .fontWeight(isSelected ? .semibold : .regular)
+                    .foregroundColor(isSelected ? .onSecondaryContainer : .onSurfaceVariant)
                 
                 Spacer()
-                
-                if isSelected {
-                    Image(systemName: "chevron.right")
-                        .font(.caption)
-                        .foregroundColor(.onSecondaryContainer.opacity(0.8))
-                }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
             .padding(.vertical, 12)
             .background(
-                // Persistent tonal fill for active page (pill shaped)
-                Capsule()
-                    .fill(isSelected ? Color.outlineVariant : Color.clear)
-            )
-            .background(
-                // Hover state layer (pill shaped)
-                Capsule()
-                    .fill(Color.onSurface.opacity(isPressed && !isSelected ? 0.1 : 0.0))
+                RoundedRectangle(cornerRadius: 28)
+                    .fill(isSelected ? Color.secondaryContainer : Color.clear)
             )
         }
-        .buttonStyle(PlainButtonStyle())
-        .scaleEffect(isPressed ? 0.98 : 1.0)
-        .onLongPressGesture(minimumDuration: 0, maximumDistance: .infinity, pressing: { pressing in
-            withAnimation(.easeInOut(duration: 0.1)) {
-                isPressed = pressing
-            }
-        }, perform: {})
-        .padding(.horizontal, 16)
+        .padding(.horizontal, 12)
     }
 }
 
@@ -148,12 +136,8 @@ enum AppSection: String, CaseIterable {
     case security = "security"
     case media = "media"
     case climate = "climate"
-    case uv = "uv"  // New UV section
-    case network = "network"  // New VPN/Network section
+    case uv = "uv"
     case settings = "settings"
-    #if DEBUG
-    case debug = "debug"  // Debug section for development builds
-    #endif
     
     var title: String {
         switch self {
@@ -167,14 +151,8 @@ enum AppSection: String, CaseIterable {
             return "HVAC @ the CC"
         case .uv:
             return "UV @ the CC"
-        case .network:
-            return "Secure Access"
         case .settings:
             return "Settings"
-        #if DEBUG
-        case .debug:
-            return "Debug & Testing"
-        #endif
         }
     }
     
@@ -190,14 +168,8 @@ enum AppSection: String, CaseIterable {
             return "Climate & Comfort"
         case .uv:
             return "UV Monitoring & Control"
-        case .network:
-            return "VPN & Network Security"
         case .settings:
             return "Configuration & Preferences"
-        #if DEBUG
-        case .debug:
-            return "Developer Tools & Material 3 Colors"
-        #endif
         }
     }
     
@@ -213,14 +185,8 @@ enum AppSection: String, CaseIterable {
             return "thermometer"
         case .uv:
             return "sun.max.fill"
-        case .network:
-            return "lock.shield.fill"
         case .settings:
             return "gearshape.fill"
-        #if DEBUG
-        case .debug:
-            return "hammer.fill"
-        #endif
         }
     }
 }

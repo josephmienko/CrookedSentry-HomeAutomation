@@ -320,7 +320,7 @@ struct NetworkInfoCard: View {
             
             VStack(spacing: 12) {
                 NetworkInfoRow(label: "Local IP", value: "192.168.1.100")  // TODO: Get actual IP
-                NetworkInfoRow(label: "VPN IP", value: "10.8.0.2")  // TODO: Get actual VPN IP
+                NetworkInfoRow(label: "VPN IP", value: "73.35.176.251")
                 NetworkInfoRow(label: "VPN Server", value: VPNManager.shared.serverEndpoint.isEmpty ? "Not configured" : VPNManager.shared.serverEndpoint)
                 
                 Divider()

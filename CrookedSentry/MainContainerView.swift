@@ -19,6 +19,7 @@ struct MainContainerView: View {
     @EnvironmentObject var settingsStore: SettingsStore
     @State private var selectedSection: AppSection = .home
     @State private var isDrawerOpen = false
+    @State private var securityInitialTab: SecurityTab? = nil
     
     // Convert eventsListView to AnyView in init
     init(events: [FrigateEvent], 
@@ -79,7 +80,17 @@ struct MainContainerView: View {
     private var contentView: some View {
         switch selectedSection {
         case .home:
-            HomeView(events: events, inProgressEvents: inProgressEvents)
+            HomeView(
+                events: events,
+                inProgressEvents: inProgressEvents,
+                onNavigateToSection: { section, tab in
+                    withAnimation(.spring(response: 0.6, dampingFraction: 0.8)) {
+                        selectedSection = section
+                        isDrawerOpen = false
+                        securityInitialTab = (section == .security) ? (tab ?? .events) : nil
+                    }
+                }
+            )
                 .environmentObject(settingsStore)
         case .security:
             SecurityView(
@@ -88,7 +99,8 @@ struct MainContainerView: View {
                 errorMessage: errorMessage,
                 isLoading: isLoading,
                 eventsListView: eventsListView,
-                onRefreshEvents: onRefreshEvents
+                onRefreshEvents: onRefreshEvents,
+                initialTab: securityInitialTab
             )
             .environmentObject(settingsStore)
         case .media:
@@ -100,18 +112,9 @@ struct MainContainerView: View {
         case .uv:
             UVView()
                 .environmentObject(settingsStore)
-        case .network:
-            NetworkView()
-                .environmentObject(settingsStore)
         case .settings:
             SettingsView()
                 .environmentObject(settingsStore)
-        #if DEBUG
-        case .debug:
-            NavigationView {
-                Material3ColorTest()
-            }
-        #endif
         }
     }
 }

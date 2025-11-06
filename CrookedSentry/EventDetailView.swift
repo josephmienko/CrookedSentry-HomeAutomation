@@ -3,9 +3,16 @@ import AVKit
 
 struct EventDetailView: View {
     let event: FrigateEvent
+    let onMarkAsReviewed: ((String) async -> Void)?
     @EnvironmentObject var settingsStore: SettingsStore
     @State private var showingVideoPlayerSheet = false
     @State private var showingSnapshotSheet = false
+    @State private var hasTriggeredMarkReviewed = false
+    
+    init(event: FrigateEvent, onMarkAsReviewed: ((String) async -> Void)? = nil) {
+        self.event = event
+        self.onMarkAsReviewed = onMarkAsReviewed
+    }
 
     private var scoreFormatter: NumberFormatter {
         let formatter = NumberFormatter()
@@ -23,6 +30,26 @@ struct EventDetailView: View {
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 8) {
+                // In-progress event notice
+                if event.end_time == nil {
+                    HStack(spacing: 8) {
+                        Circle()
+                            .fill(Color.error)
+                            .frame(width: 8, height: 8)
+                        
+                        Text("This event is currently in progress")
+                            .font(.subheadline)
+                            .fontWeight(.medium)
+                            .foregroundColor(.error)
+                        
+                        Spacer()
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 8)
+                    .background(Color.error.opacity(0.1))
+                    .cornerRadius(8)
+                }
+                
                 if let fullSizeSnapshotUrl = event.fullSizeSnapshotUrl(baseURL: settingsStore.frigateBaseURL) {
                     Button(action: {
                         showingSnapshotSheet = true
@@ -180,6 +207,31 @@ struct EventDetailView: View {
             } else {
                 Text("Snapshot not available.")
                     .foregroundColor(.white)
+            }
+        }
+        .task {
+            // Only mark as reviewed if the event has ended (has an end_time)
+            // In-progress events should not be marked as reviewed
+            if event.end_time != nil, let onMarkAsReviewed = onMarkAsReviewed {
+                print("🧭 EventDetailView.task: will mark as reviewed for id=\(event.id), end_time=\(String(describing: event.end_time))")
+                await onMarkAsReviewed(event.id)
+                hasTriggeredMarkReviewed = true
+            } else {
+                print("🧭 EventDetailView.task: not marking reviewed (end_time=\(String(describing: event.end_time)), callbackNil=\(onMarkAsReviewed == nil))")
+            }
+        }
+        .onAppear {
+            // Defensive: ensure we trigger once upon appearance if .task didn't fire
+            if !hasTriggeredMarkReviewed, event.end_time != nil {
+                if let onMarkAsReviewed = onMarkAsReviewed {
+                    print("🧭 EventDetailView.onAppear: marking as reviewed for id=\(event.id)")
+                    hasTriggeredMarkReviewed = true
+                    Task { await onMarkAsReviewed(event.id) }
+                } else {
+                    print("🧭 EventDetailView.onAppear: callback is nil; cannot mark as reviewed for id=\(event.id)")
+                }
+            } else {
+                print("🧭 EventDetailView.onAppear: not marking (hasTriggered=\(hasTriggeredMarkReviewed), end_time=\(String(describing: event.end_time)))")
             }
         }
     }

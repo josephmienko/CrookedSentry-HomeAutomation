@@ -4,13 +4,15 @@ struct EventCardView: View {
     @EnvironmentObject var settingsStore: SettingsStore
     let event: FrigateEvent
     let isInProgress: Bool
+    var isUnreviewed: Bool = false
+    var onMarkAsReviewed: ((String) async -> Void)? = nil
     @State private var isExpanded = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Main event row
-            HStack(alignment: .top, spacing: 16) {
-                // Thumbnail with rounded corners
+            HStack(alignment: .center, spacing: 16) {
+                // Thumbnail with rounded corners (no badge here anymore)
                 if let thumbnailUrl = event.thumbnailUrl(baseURL: settingsStore.frigateBaseURL) {
                     RemoteImage(url: thumbnailUrl) {
                         RoundedRectangle(cornerRadius: 12)
@@ -44,24 +46,34 @@ struct EventCardView: View {
                     HStack {
                         Text("\(event.friendlyLabelName) seen in \(event.friendlyCameraName)")
                             .font(.body)
-                            .fontWeight(.medium)
+                            .fontWeight(isUnreviewed ? .bold : .medium)
                             .foregroundColor(.onSurface)
                             .lineLimit(2)
                             .multilineTextAlignment(.leading)
                         
                         Spacer()
                         
-                        // In progress indicator
-                        if isInProgress {
-                            HStack(spacing: 4) {
+                        // Status badges in upper right corner
+                        HStack(spacing: 8) {
+                            // Unreviewed badge (6px filled dot)
+                            if isUnreviewed {
                                 Circle()
                                     .fill(Color.error)
-                                    .frame(width: 8, height: 8)
-                                
-                                Text("Live")
-                                    .font(.subheadline)
-                                    .fontWeight(.medium)
-                                    .foregroundColor(.error)
+                                    .frame(width: 6, height: 6)
+                            }
+                            
+                            // In progress indicator
+                            if isInProgress {
+                                HStack(spacing: 4) {
+                                    Circle()
+                                        .fill(Color.error)
+                                        .frame(width: 8, height: 8)
+                                    
+                                    Text("Live")
+                                        .font(.subheadline)
+                                        .fontWeight(.medium)
+                                        .foregroundColor(.error)
+                                }
                             }
                         }
                     }
@@ -84,6 +96,10 @@ struct EventCardView: View {
                             .lineLimit(1)
                     }
                 }
+                // Ensure the text block is vertically centered relative to the thumbnail without
+                // affecting internal line spacing. When the text is shorter than the thumbnail,
+                // this keeps it centered; when it's taller, it expands naturally.
+                .frame(minHeight: 80, alignment: .center)
                 
                 Spacer()
             }
@@ -131,6 +147,13 @@ struct EventCardView: View {
             if event.has_clip {
                 withAnimation(.easeInOut(duration: 0.3)) {
                     isExpanded.toggle()
+                }
+                // If this is a completed event and we expand to play inline, mark it as reviewed
+                if !isInProgress, event.end_time != nil, isExpanded {
+                    if let onMarkAsReviewed = onMarkAsReviewed {
+                        print("🧭 EventCardView: expanded inline video; marking as reviewed for id=\(event.id)")
+                        Task { await onMarkAsReviewed(event.id) }
+                    }
                 }
             }
         }

@@ -146,7 +146,7 @@ struct NetworkSecurityDebugViewSimple: View {
                                     .font(.system(.caption, design: .monospaced))
                                     .padding(.horizontal, 8)
                                     .padding(.vertical, 2)
-                                    .background(Color(.systemGray6))
+                                    .background(Color.secondary.opacity(0.2))
                                     .cornerRadius(4)
                             }
                         }

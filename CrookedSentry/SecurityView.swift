@@ -1,5 +1,10 @@
 import SwiftUI
 
+enum SecurityTab: Int {
+    case events = 0
+    case live = 1
+}
+
 struct SecurityView: View {
     let events: [FrigateEvent]
     let inProgressEvents: [FrigateEvent] 
@@ -7,6 +12,7 @@ struct SecurityView: View {
     let isLoading: Bool
     let eventsListView: AnyView
     let onRefreshEvents: (Bool) async -> Void
+    let initialTab: SecurityTab?
     
     @EnvironmentObject var settingsStore: SettingsStore
     @State private var selectedTab = 0
@@ -36,6 +42,9 @@ struct SecurityView: View {
             VPNManager.shared.updateFrigateURL(settingsStore.frigateBaseURL)
             // Check current security state
             VPNManager.shared.checkCurrentSecurityState()
+            if let initialTab = initialTab {
+                selectedTab = initialTab.rawValue
+            }
         }
     }
 }

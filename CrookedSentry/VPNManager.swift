@@ -11,7 +11,7 @@ import Combine
 // import CrookedKeys  // TODO: Add when framework is available
 
 /// VPN connection states for UI feedback
-enum VPNConnectionState: Equatable {
+internal enum VPNConnectionState: Equatable {
     case disconnected
     case connecting
     case connected

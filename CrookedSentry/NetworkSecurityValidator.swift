@@ -26,7 +26,9 @@ class NetworkSecurityValidator: ObservableObject {
         startNetworkMonitoring()
     }
     
-    deinit {
+    // Allow deallocation off the MainActor to avoid runtime isolation assertions
+    // when instances are freed from background executors during tests.
+    nonisolated deinit {
         monitor.cancel()
     }
     

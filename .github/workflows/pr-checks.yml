@@ -1,0 +1,143 @@
+name: Pull Request Checks
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  pr-validation:
+    name: PR Validation
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'
+    
+    - name: Check PR Title
+      run: |
+        PR_TITLE="${{ github.event.pull_request.title }}"
+        if [[ ! "$PR_TITLE" =~ ^(feat|fix|docs|style|refactor|test|chore|perf)(\(.+\))?: ]]; then
+          echo "::warning::PR title should follow conventional commits format"
+          echo "Examples: 'feat: add new feature', 'fix(auth): resolve login issue'"
+        fi
+    
+    - name: Check for Large Files
+      run: |
+        # Check for files larger than 5MB
+        LARGE_FILES=$(find . -type f -size +5M -not -path "./.git/*" -not -path "./DerivedData/*")
+        if [ -n "$LARGE_FILES" ]; then
+          echo "::warning::Large files detected:"
+          echo "$LARGE_FILES"
+        fi
+    
+    - name: Lint Changed Swift Files
+      continue-on-error: true
+      run: |
+        # Get list of changed Swift files
+        CHANGED_FILES=$(git diff --name-only origin/${{ github.base_ref }}...HEAD | grep "\.swift$" || true)
+        
+        if [ -n "$CHANGED_FILES" ]; then
+          echo "Changed Swift files:"
+          echo "$CHANGED_FILES"
+          
+          # Basic syntax check
+          for file in $CHANGED_FILES; do
+            if [ -f "$file" ]; then
+              echo "Checking $file..."
+              xcrun swiftc -typecheck "$file" 2>&1 || true
+            fi
+          done
+        fi
+    
+    - name: Test Coverage Diff
+      if: always()
+      run: |
+        echo "## Test Coverage Analysis" >> $GITHUB_STEP_SUMMARY
+        echo "Running tests to check coverage..." >> $GITHUB_STEP_SUMMARY
+        
+        # Run tests with coverage
+        xcodebuild test \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentryTests \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -enableCodeCoverage YES \
+          -derivedDataPath ./DerivedData \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO || true
+        
+        # Generate coverage report
+        if [ -d "./DerivedData/Logs/Test" ]; then
+          xcrun xccov view --report ./DerivedData/Logs/Test/*.xcresult >> $GITHUB_STEP_SUMMARY 2>&1 || true
+        fi
+
+  operational-mock-tests:
+    name: Operational Mock Tests
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'
+    
+    - name: Run Operational Mock Integration Tests
+      run: |
+        xcodebuild test \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentryTests \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -only-testing:CrookedSentryTests/OperationalMockIntegrationTests \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO \
+          | xcpretty && exit ${PIPESTATUS[0]}
+    
+    - name: Run Security Tests
+      continue-on-error: true
+      run: |
+        xcodebuild test \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentryTests \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -only-testing:CrookedSentryTests/SecurityIntegrationTests \
+          -only-testing:CrookedSentryTests/SecureAPIClientTests \
+          -only-testing:CrookedSentryTests/NetworkSecurityValidatorTests \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO \
+          | xcpretty && exit ${PIPESTATUS[0]}
+
+  changelog-check:
+    name: Changelog Update Check
+    runs-on: ubuntu-latest
+    if: github.event.pull_request.base.ref == 'main'
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+    
+    - name: Check for Changelog Update
+      run: |
+        # Check if CHANGELOG.md exists and was updated
+        if [ -f "CHANGELOG.md" ]; then
+          if git diff --name-only origin/${{ github.base_ref }}...HEAD | grep -q "CHANGELOG.md"; then
+            echo "✅ Changelog updated"
+          else
+            echo "::warning::Consider updating CHANGELOG.md for this PR"
+          fi
+        else
+          echo "::notice::No CHANGELOG.md file found"
+        fi

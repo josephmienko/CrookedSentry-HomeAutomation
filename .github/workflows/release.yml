@@ -1,0 +1,126 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'  # Triggers on version tags like v1.0.0
+
+jobs:
+  validate-tag:
+    name: Validate Release Tag
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Validate Semantic Version
+      run: |
+        TAG_NAME="${GITHUB_REF#refs/tags/}"
+        if [[ ! "$TAG_NAME" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-[a-zA-Z0-9.]+)?$ ]]; then
+          echo "::error::Invalid tag format: $TAG_NAME"
+          echo "Expected format: v1.0.0 or v1.0.0-beta.1"
+          exit 1
+        fi
+        echo "TAG_NAME=$TAG_NAME" >> $GITHUB_ENV
+
+  build-release:
+    name: Build Release
+    runs-on: macos-14
+    needs: validate-tag
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'
+    
+    - name: Run Full Test Suite
+      run: |
+        xcodebuild test \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentryTests \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -enableCodeCoverage YES \
+          -derivedDataPath ./DerivedData \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO
+    
+    - name: Build Release Archive
+      run: |
+        xcodebuild archive \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentry \
+          -archivePath ./build/CrookedSentry.xcarchive \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO
+    
+    - name: Generate Release Notes
+      run: |
+        TAG_NAME="${GITHUB_REF#refs/tags/}"
+        echo "# Release $TAG_NAME" > release_notes.md
+        echo "" >> release_notes.md
+        echo "## Changes" >> release_notes.md
+        
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -n "$LAST_TAG" ]; then
+          git log $LAST_TAG..HEAD --pretty=format:"- %s" >> release_notes.md
+        else
+          echo "Initial release" >> release_notes.md
+        fi
+    
+    - name: Create Release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      with:
+        tag_name: ${{ github.ref }}
+        release_name: Release ${{ github.ref }}
+        body_path: release_notes.md
+        draft: false
+        prerelease: ${{ contains(github.ref, '-') }}
+    
+    - name: Archive Build Artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: release-build
+        path: ./build/CrookedSentry.xcarchive
+        retention-days: 90
+
+  security-audit:
+    name: Security Audit
+    runs-on: macos-14
+    needs: validate-tag
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'
+    
+    - name: Run Security Tests
+      run: |
+        xcodebuild test \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentryTests \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -only-testing:CrookedSentryTests/SecurityIntegrationTests \
+          -only-testing:CrookedSentryTests/SecureAPIClientTests \
+          -only-testing:CrookedSentryTests/NetworkSecurityValidatorTests \
+          -only-testing:CrookedSentryTests/VPNConnectionStateTests \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO
+    
+    - name: Security Scan Summary
+      run: |
+        echo "## Security Audit Results" >> $GITHUB_STEP_SUMMARY
+        echo "✅ All security tests passed for release" >> $GITHUB_STEP_SUMMARY

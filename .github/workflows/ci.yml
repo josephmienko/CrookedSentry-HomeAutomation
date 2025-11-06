@@ -1,0 +1,237 @@
+name: CI
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    name: Build and Analyze
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'  # Use stable version instead of beta
+    
+    - name: Show Xcode Version
+      run: xcodebuild -version
+    
+    - name: Build CrookedSentry
+      run: |
+        xcodebuild build \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentry \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO \
+          | xcpretty && exit ${PIPESTATUS[0]}
+    
+    - name: Run Swift Lint (if configured)
+      continue-on-error: true
+      run: |
+        if [ -f .swiftlint.yml ]; then
+          if command -v swiftlint &> /dev/null; then
+            swiftlint
+          else
+            echo "SwiftLint not installed, skipping..."
+          fi
+        fi
+
+  test:
+    name: Run Tests
+    runs-on: macos-14
+    needs: build
+    
+    strategy:
+      matrix:
+        destination:
+          - 'platform=iOS Simulator,name=iPhone 15'
+          - 'platform=iOS Simulator,name=iPhone 15 Pro Max'
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'
+    
+    - name: Run Unit Tests
+      run: |
+        xcodebuild test \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentryTests \
+          -destination '${{ matrix.destination }}' \
+          -enableCodeCoverage YES \
+          -derivedDataPath ./DerivedData \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO \
+          | xcpretty && exit ${PIPESTATUS[0]}
+    
+    - name: Archive Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: test-results-${{ strategy.job-index }}
+        path: ./DerivedData/Logs/Test/*.xcresult
+        retention-days: 5
+
+  ui-test:
+    name: Run UI Tests
+    runs-on: macos-14
+    needs: build
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'
+    
+    - name: Run UI Tests
+      run: |
+        xcodebuild test \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentry \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -only-testing:CrookedSentryUITests \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO \
+          | xcpretty && exit ${PIPESTATUS[0]}
+    
+    - name: Upload UI Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ui-test-results
+        path: ./DerivedData/Logs/Test/*.xcresult
+        retention-days: 5
+
+  code-quality:
+    name: Code Quality Checks
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0  # Full history for better analysis
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'
+    
+    - name: Run Static Analyzer
+      run: |
+        xcodebuild analyze \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentry \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO
+    
+    - name: Check for TODO/FIXME
+      continue-on-error: true
+      run: |
+        echo "## Code Quality Issues" >> $GITHUB_STEP_SUMMARY
+        echo "### TODO Items" >> $GITHUB_STEP_SUMMARY
+        grep -r "TODO:" CrookedSentry/ --include="*.swift" || echo "No TODOs found" >> $GITHUB_STEP_SUMMARY
+        echo "### FIXME Items" >> $GITHUB_STEP_SUMMARY
+        grep -r "FIXME:" CrookedSentry/ --include="*.swift" || echo "No FIXMEs found" >> $GITHUB_STEP_SUMMARY
+
+  coverage:
+    name: Code Coverage
+    runs-on: macos-14
+    needs: test
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Setup Xcode
+      uses: maxim-lobanov/setup-xcode@v1
+      with:
+        xcode-version: '15.4'
+    
+    - name: Run Tests with Coverage
+      run: |
+        xcodebuild test \
+          -project CrookedSentry.xcodeproj \
+          -scheme CrookedSentryTests \
+          -destination 'platform=iOS Simulator,name=iPhone 15' \
+          -enableCodeCoverage YES \
+          -derivedDataPath ./DerivedData \
+          CODE_SIGN_IDENTITY="" \
+          CODE_SIGNING_REQUIRED=NO \
+          ONLY_ACTIVE_ARCH=NO
+    
+    - name: Generate Coverage Report
+      run: |
+        xcrun xccov view --report --json ./DerivedData/Logs/Test/*.xcresult > coverage.json
+        xcrun xccov view --report ./DerivedData/Logs/Test/*.xcresult > coverage.txt
+    
+    - name: Display Coverage Summary
+      run: |
+        echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+        cat coverage.txt >> $GITHUB_STEP_SUMMARY
+    
+    - name: Upload Coverage to Codecov
+      uses: codecov/codecov-action@v4
+      with:
+        files: ./coverage.json
+        fail_ci_if_error: false
+        token: ${{ secrets.CODECOV_TOKEN }}
+    
+    - name: Archive Coverage Results
+      uses: actions/upload-artifact@v4
+      with:
+        name: coverage-report
+        path: |
+          coverage.json
+          coverage.txt
+        retention-days: 30
+
+  security-scan:
+    name: Security Scan
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+    
+    - name: Run Security Checks
+      continue-on-error: true
+      run: |
+        # Check for hardcoded credentials or sensitive data
+        echo "## Security Scan Results" >> $GITHUB_STEP_SUMMARY
+        
+        # Check for potential API keys
+        if grep -r "api[_-]key\s*=\s*['\"]" CrookedSentry/ --include="*.swift"; then
+          echo "⚠️ Potential hardcoded API keys found" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ No hardcoded API keys detected" >> $GITHUB_STEP_SUMMARY
+        fi
+        
+        # Check for TODO SECURITY items
+        if grep -r "TODO.*SECURITY\|FIXME.*SECURITY" CrookedSentry/ --include="*.swift"; then
+          echo "⚠️ Security-related TODOs found" >> $GITHUB_STEP_SUMMARY
+        else
+          echo "✅ No security TODOs found" >> $GITHUB_STEP_SUMMARY
+        fi

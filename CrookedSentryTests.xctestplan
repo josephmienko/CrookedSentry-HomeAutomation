@@ -1,0 +1,25 @@
+{
+  "configurations" : [
+    {
+      "id" : "EB3A9D03-908F-457F-AF5E-7B731B7CB0A9",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+    "performanceAntipatternCheckerEnabled" : true
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:CrookedSentry.xcodeproj",
+        "identifier" : "27208AE92EB8C5DB00560E12",
+        "name" : "CrookedSentryTests"
+      }
+    }
+  ],
+  "version" : 1
+}

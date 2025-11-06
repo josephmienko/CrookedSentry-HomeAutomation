@@ -3,7 +3,7 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject var settingsStore: SettingsStore
     @Environment(\.presentationMode) var presentationMode
-    @State private var selectedTab = 0
+    @State private var selectedTab = 1 // Start with Network tab (index 1)
 
     private var appVersion: String {
         Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "N/A"
@@ -57,10 +57,10 @@ struct SettingsView: View {
     var body: some View {
         NavigationView {
             VStack(spacing: 0) {
-                // Tab Picker
+                // Tab Picker - Network first
                 Picker("Settings Category", selection: $selectedTab) {
-                    Text("CCTV").tag(0)
                     Text("Network").tag(1)
+                    Text("CCTV").tag(0)
                     Text("About").tag(2)
                 }
                 .pickerStyle(SegmentedPickerStyle())
@@ -86,10 +86,19 @@ struct SettingsView: View {
             }
             .background(Color.background)
             .navigationTitle("Settings")
-            .navigationBarItems(trailing: Button("Done") {
+            .navigationBarItems(trailing: Button(action: {
                 presentationMode.wrappedValue.dismiss()
-            }
-            .foregroundColor(.blue))
+            }) {
+                ZStack {
+                    Circle()
+                        .fill(Color.primaryContainer)
+                        .frame(width: 36, height: 36)
+                    
+                    Image(systemName: "xmark")
+                        .font(.system(size: 14, weight: .semibold))
+                        .foregroundColor(.onPrimaryContainer)
+                }
+            })
         }
     }
 }
@@ -105,6 +114,56 @@ struct CCTVSettingsTab: View {
                 TextField("Base URL", text: $settingsStore.frigateBaseURL)
                     .autocapitalization(.none)
                     .disableAutocorrection(true)
+            }
+
+            Section(header: Text("Review State API Server")) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("CrookedReviewState Node.js API for centralized review state tracking across devices.")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+                TextField("Base URL", text: $settingsStore.crookedReviewStateBaseURL)
+                    .autocapitalization(.none)
+                    .disableAutocorrection(true)
+            }
+
+            Section(header: Text("Advanced Frigate API Headers")) {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Use these only if your reverse proxy requires CSRF or cookies for API writes.")
+                        .font(.caption)
+                        .foregroundColor(.gray)
+                }
+
+                HStack {
+                    Text("CSRF Token")
+                        .frame(width: 100, alignment: .leading)
+                    TextField("x-csrf-token value", text: $settingsStore.frigateCsrfToken)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                }
+
+                HStack {
+                    Text("Cookie")
+                        .frame(width: 100, alignment: .leading)
+                    TextField("Cookie header value", text: $settingsStore.frigateCookie)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                }
+
+                VStack(alignment: .leading, spacing: 6) {
+                    Text("Extra Headers")
+                        .font(.subheadline)
+                    TextEditor(text: $settingsStore.frigateExtraHeaders)
+                        .frame(minHeight: 80)
+                        .overlay(RoundedRectangle(cornerRadius: 6).stroke(Color.gray.opacity(0.3)))
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
+                    Text("Format: one per line as 'Key: Value'. Example: x-cache-bypass: 1")
+                        .font(.caption2)
+                        .foregroundColor(.gray)
+                }
             }
 
             Section(header: Text("Label Filter")) {

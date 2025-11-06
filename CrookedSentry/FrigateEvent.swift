@@ -99,3 +99,24 @@ struct EventData: Codable {
     let top_score: Double
     let type: String
 }
+
+// MARK: - FrigateReviewItem
+struct FrigateReviewItem: Codable, Identifiable {
+    let id: String
+    let camera: String
+    let startTime: Double
+    let endTime: Double?
+    let hasBeenReviewed: Bool
+    let severity: String
+    let thumbPath: String
+    let data: ReviewData?
+}
+
+// MARK: - ReviewData
+struct ReviewData: Codable {
+    let detections: [String]?
+    let objects: [String]?
+    let sub_labels: [String]?
+    let zones: [String]?
+    let audio: [String]?
+}

@@ -46,6 +46,32 @@ class FrigateAPIClient: ObservableObject {
         self.decoder.dateDecodingStrategy = .secondsSince1970 // Frigate uses Unix timestamps
     }
 
+    // MARK: - Header configuration
+    private func userConfiguredHeaders() -> [String: String] {
+        var headers: [String: String] = [:]
+        let defaults = UserDefaults.standard
+        if let csrf = defaults.string(forKey: "frigateCsrfToken"), !csrf.isEmpty {
+            headers["x-csrf-token"] = csrf
+        }
+        if let cookie = defaults.string(forKey: "frigateCookie"), !cookie.isEmpty {
+            headers["Cookie"] = cookie
+        }
+        if let extra = defaults.string(forKey: "frigateExtraHeaders"), !extra.isEmpty {
+            // Parse lines of "Key: Value"
+            let lines = extra.split(separator: "\n").map { String($0) }
+            for line in lines {
+                if let sep = line.firstIndex(of: ":") {
+                    let key = String(line[..<sep]).trimmingCharacters(in: .whitespaces)
+                    let value = String(line[line.index(after: sep)...]).trimmingCharacters(in: .whitespaces)
+                    if !key.isEmpty {
+                        headers[key] = value
+                    }
+                }
+            }
+        }
+        return headers
+    }
+
     private func getVersion() async throws -> String {
         if let cached = cachedVersion {
             return cached
@@ -368,6 +394,142 @@ class FrigateAPIClient: ObservableObject {
         return events.map { $0.camera }.removingDuplicates().sorted()
     }
 
+    // MARK: - Review Fetching
+    
+    func fetchReviewItems(
+        cameras: String = "all",
+        labels: String = "all",
+        zones: String = "all",
+        reviewed: Int = 0,
+        limit: Int? = nil,
+        severity: String? = nil,
+        before: Double? = nil,
+        after: Double? = nil
+    ) async throws -> [FrigateReviewItem] {
+        var components = URLComponents(string: "\(baseURL)/api/review")!
+        var queryItems: [URLQueryItem] = []
+        
+        queryItems.append(URLQueryItem(name: "cameras", value: cameras))
+        queryItems.append(URLQueryItem(name: "labels", value: labels))
+        queryItems.append(URLQueryItem(name: "zones", value: zones))
+        queryItems.append(URLQueryItem(name: "reviewed", value: String(reviewed)))
+        
+        if let limit = limit {
+            queryItems.append(URLQueryItem(name: "limit", value: String(limit)))
+        }
+        
+        if let severity = severity {
+            queryItems.append(URLQueryItem(name: "severity", value: severity))
+        }
+        
+        if let before = before {
+            queryItems.append(URLQueryItem(name: "before", value: String(before)))
+        }
+        
+        if let after = after {
+            queryItems.append(URLQueryItem(name: "after", value: String(after)))
+        }
+        
+        components.queryItems = queryItems
+        
+        guard let url = components.url else {
+            throw FrigateAPIError.invalidURL
+        }
+        
+        print("🌐 FrigateAPIClient: Fetching review items from: \(url)")
+        
+        do {
+            let (data, response) = try await session.data(from: url)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ FrigateAPIClient: Invalid HTTP response")
+                throw FrigateAPIError.invalidResponse
+            }
+            
+            print("📡 FrigateAPIClient: Review HTTP Response: \(httpResponse.statusCode)")
+            print("📊 FrigateAPIClient: Review Response headers: \(httpResponse.allHeaderFields)")
+            
+            guard httpResponse.statusCode == 200 else {
+                print("❌ FrigateAPIClient: HTTP Error: \(httpResponse.statusCode)")
+                throw FrigateAPIError.invalidResponse
+            }
+            
+            if let responseString = String(data: data, encoding: .utf8) {
+                print("📄 FrigateAPIClient: Review API Response (first 500 chars): \(String(responseString.prefix(500)))")
+            }
+            
+            let decoder = JSONDecoder()
+            decoder.keyDecodingStrategy = .convertFromSnakeCase
+            let reviewItems = try decoder.decode([FrigateReviewItem].self, from: data)
+            print("✅ FrigateAPIClient: Successfully parsed \(reviewItems.count) review items")
+            return reviewItems
+        } catch {
+            print("❌ FrigateAPIClient: Review fetch error: \(error)")
+            throw FrigateAPIError.networkError(error)
+        }
+    }
+    
+    // MARK: - Review Management
+    
+    func markEventAsReviewed(eventId: String) async throws {
+        try await markEventsAsReviewed(eventIds: [eventId])
+    }
+
+    func markEventsAsReviewed(eventIds: [String]) async throws {
+        guard let url = URL(string: "\(baseURL)/api/reviews/viewed") else {
+            throw FrigateAPIError.invalidURL
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        // Add headers similar to browser requests to avoid proxy/cache/CSRF quirks,
+        // then overlay user-configured headers.
+        if let base = URL(string: baseURL) {
+            var defaultHeaders = AuthHeaders.build(baseURL: base, username: nil, password: nil, extra: [
+                "Accept": "*/*",
+                "x-cache-bypass": "1",
+                "Referer": base.appendingPathComponent("review").absoluteString
+            ])
+            // Merge user-configured headers (override defaults)
+            for (k, v) in userConfiguredHeaders() { defaultHeaders[k] = v }
+            for (k, v) in defaultHeaders { request.setValue(v, forHTTPHeaderField: k) }
+        }
+
+        let body = ["ids": eventIds]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        if let bodyString = String(data: request.httpBody ?? Data(), encoding: .utf8) {
+            print("📝 FrigateAPIClient: Request body: \(bodyString)")
+        }
+        print("📝 FrigateAPIClient: Request headers: \(request.allHTTPHeaderFields ?? [:])")
+        print("📝 FrigateAPIClient: Marking events as reviewed (count=\(eventIds.count)) -> first=\(eventIds.first ?? "n/a")")
+        
+        do {
+            let (data, response) = try await session.data(for: request)
+            
+            guard let httpResponse = response as? HTTPURLResponse else {
+                print("❌ FrigateAPIClient: Invalid HTTP response when marking as reviewed")
+                throw FrigateAPIError.invalidResponse
+            }
+            
+            print("📡 FrigateAPIClient: Mark reviewed HTTP Response: \(httpResponse.statusCode)")
+            
+            guard httpResponse.statusCode == 200 else {
+                print("❌ FrigateAPIClient: HTTP Error when marking as reviewed: \(httpResponse.statusCode)")
+                if let responseString = String(data: data, encoding: .utf8) {
+                    print("📄 FrigateAPIClient: Error response body: \(responseString)")
+                }
+                throw FrigateAPIError.invalidResponse
+            }
+            
+            print("✅ FrigateAPIClient: Successfully marked \(eventIds.count) event(s) as reviewed")
+        } catch {
+            print("❌ FrigateAPIClient: Error marking event as reviewed: \(error)")
+            throw FrigateAPIError.networkError(error)
+        }
+    }
+
     // MARK: - Connectivity Test
     
     func testConnectivity() async throws -> Bool {
@@ -511,6 +673,14 @@ class FrigateAPIClient: ObservableObject {
             throw FrigateAPIError.networkError(error)
         }
     }
+
+    // The project sets `SWIFT_DEFAULT_ACTOR_ISOLATION = MainActor` which makes
+    // types implicitly main-actor isolated. During tests many FrigateAPIClient
+    // instances are created/destroyed off the main thread which can trigger
+    // the Swift runtime's executor/isolation checks during `deinit` and cause
+    // a crash. Declare a nonisolated deinit to allow deallocation on any
+    // executor. Keep it empty to avoid performing actor-isolated work here.
+    nonisolated deinit { }
 }
 
 // MARK: - Array Extensions

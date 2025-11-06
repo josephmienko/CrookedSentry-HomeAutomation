@@ -6,11 +6,11 @@
 //
 
 import Foundation
-import Testing
+import XCTest
 import Combine
 @testable import CrookedSentry
 
-@Suite("SettingsStore Tests")
+// @Suite("SettingsStore Tests")
 struct SettingsStoreTests {
     
     // MARK: - Test Configuration
@@ -35,34 +35,34 @@ struct SettingsStoreTests {
     
     // MARK: - Initialization Tests
     
-    @Suite("Settings Store Initialization")
+    // @Suite("Settings Store Initialization")
     struct InitializationTests {
         
-        @Test("Initialize with default values")
+        // @Test("Initialize with default values")
         func testDefaultInitialization() async throws {
             let settingsStore = SettingsStore()
             
             // Test default values
-            #expect(settingsStore.frigateBaseURL == "http://192.168.0.200:5000")
-            #expect(settingsStore.frigateVersion == "Unknown")
-            #expect(settingsStore.availableLabels.isEmpty)
-            #expect(settingsStore.selectedLabels.isEmpty)
-            #expect(settingsStore.availableZones.isEmpty)
-            #expect(settingsStore.selectedZones.isEmpty)
-            #expect(settingsStore.availableCameras == ["backyard", "cam1"])
-            #expect(settingsStore.selectedCameras.isEmpty)
-            #expect(settingsStore.defaultStreamQuality == "sub")
-            #expect(settingsStore.autoExpandFeeds == false)
-            #expect(settingsStore.cameraUsername == "admin")
-            #expect(settingsStore.cameraPassword == "DavidAlan")
-            
+            XCTAssertEqual(settingsStore.frigateBaseURL, "http://192.168.0.200:5000")
+            XCTAssertEqual(settingsStore.frigateVersion, "Unknown")
+            XCTAssertTrue(settingsStore.availableLabels.isEmpty)
+            XCTAssertTrue(settingsStore.selectedLabels.isEmpty)
+            XCTAssertTrue(settingsStore.availableZones.isEmpty)
+            XCTAssertTrue(settingsStore.selectedZones.isEmpty)
+            XCTAssertEqual(settingsStore.availableCameras, ["backyard", "cam1"])
+            XCTAssertTrue(settingsStore.selectedCameras.isEmpty)
+            XCTAssertEqual(settingsStore.defaultStreamQuality, "sub")
+            XCTAssertFalse(settingsStore.autoExpandFeeds)
+            XCTAssertEqual(settingsStore.cameraUsername, "admin")
+            XCTAssertEqual(settingsStore.cameraPassword, "DavidAlan")
+
             // Test default camera IP addresses
-            #expect(settingsStore.cameraIPAddresses["backyard"] == "192.168.0.210")
-            #expect(settingsStore.cameraIPAddresses["cam1"] == "192.168.0.211")
+            XCTAssertEqual(settingsStore.cameraIPAddresses["backyard"], "192.168.0.210")
+            XCTAssertEqual(settingsStore.cameraIPAddresses["cam1"], "192.168.0.211")
         }
         
-        @Test("Initialize with existing UserDefaults")
-        func testInitializationWithExistingDefaults() async throws {
+    // @Test("Initialize with existing UserDefaults")
+    func testInitializationWithExistingDefaults() async throws {
             // Pre-populate UserDefaults with test values
             UserDefaults.standard.set("http://192.168.1.100:5000", forKey: "frigateBaseURL")
             UserDefaults.standard.set(["person", "car"], forKey: "selectedLabels")
@@ -79,16 +79,16 @@ struct SettingsStoreTests {
             let settingsStore = SettingsStore()
             
             // Test that values were loaded from UserDefaults
-            #expect(settingsStore.frigateBaseURL == "http://192.168.1.100:5000")
-            #expect(settingsStore.selectedLabels == Set(["person", "car"]))
-            #expect(settingsStore.selectedZones == Set(["driveway", "yard"]))
-            #expect(settingsStore.selectedCameras == Set(["camera1", "camera2"]))
-            #expect(settingsStore.defaultStreamQuality == "main")
-            #expect(settingsStore.autoExpandFeeds == true)
-            #expect(settingsStore.cameraUsername == "testuser")
-            #expect(settingsStore.cameraPassword == "testpass")
-            #expect(settingsStore.cameraIPAddresses["camera1"] == "192.168.1.201")
-            #expect(settingsStore.cameraIPAddresses["camera2"] == "192.168.1.202")
+            XCTAssertEqual(settingsStore.frigateBaseURL, "http://192.168.1.100:5000")
+            XCTAssertEqual(settingsStore.selectedLabels, Set(["person", "car"]))
+            XCTAssertEqual(settingsStore.selectedZones, Set(["driveway", "yard"]))
+            XCTAssertEqual(settingsStore.selectedCameras, Set(["camera1", "camera2"]))
+            XCTAssertEqual(settingsStore.defaultStreamQuality, "main")
+            XCTAssertTrue(settingsStore.autoExpandFeeds)
+            XCTAssertEqual(settingsStore.cameraUsername, "testuser")
+            XCTAssertEqual(settingsStore.cameraPassword, "testpass")
+            XCTAssertEqual(settingsStore.cameraIPAddresses["camera1"], "192.168.1.201")
+            XCTAssertEqual(settingsStore.cameraIPAddresses["camera2"], "192.168.1.202")
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "frigateBaseURL")
@@ -105,10 +105,10 @@ struct SettingsStoreTests {
     
     // MARK: - Frigate Base URL Tests
     
-    @Suite("Frigate Base URL Management")
+    // @Suite("Frigate Base URL Management")
     struct FrigateBaseURLTests {
         
-        @Test("Set and persist Frigate base URL")
+        // @Test("Set and persist Frigate base URL")
         func testSetFrigateBaseURL() async throws {
             let settingsStore = SettingsStore()
             let testURL = "http://192.168.1.200:5000"
@@ -116,18 +116,18 @@ struct SettingsStoreTests {
             settingsStore.frigateBaseURL = testURL
             
             // Verify the value is set in the store
-            #expect(settingsStore.frigateBaseURL == testURL)
-            
-            // Verify the value is persisted to UserDefaults
-            let persistedURL = UserDefaults.standard.string(forKey: "frigateBaseURL")
-            #expect(persistedURL == testURL)
+                XCTAssertEqual(settingsStore.frigateBaseURL, testURL)
+                
+                // Verify the value is persisted to UserDefaults
+                let persistedURL = UserDefaults.standard.string(forKey: "frigateBaseURL")
+                XCTAssertEqual(persistedURL, testURL)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "frigateBaseURL")
         }
         
-        @Test("Update Frigate base URL multiple times")
-        func testUpdateFrigateBaseURLMultipleTimes() async throws {
+    // @Test("Update Frigate base URL multiple times")
+    func testUpdateFrigateBaseURLMultipleTimes() async throws {
             let settingsStore = SettingsStore()
             let urls = [
                 "http://192.168.1.100:5000",
@@ -138,23 +138,23 @@ struct SettingsStoreTests {
             for url in urls {
                 settingsStore.frigateBaseURL = url
                 
-                #expect(settingsStore.frigateBaseURL == url)
-                #expect(UserDefaults.standard.string(forKey: "frigateBaseURL") == url)
+                XCTAssertEqual(settingsStore.frigateBaseURL, url)
+                XCTAssertEqual(UserDefaults.standard.string(forKey: "frigateBaseURL"), url)
             }
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "frigateBaseURL")
         }
         
-        @Test("Set empty Frigate base URL")
-        func testSetEmptyFrigateBaseURL() async throws {
+    // @Test("Set empty Frigate base URL")
+    func testSetEmptyFrigateBaseURL() async throws {
             let settingsStore = SettingsStore()
             let emptyURL = ""
             
             settingsStore.frigateBaseURL = emptyURL
             
-            #expect(settingsStore.frigateBaseURL == emptyURL)
-            #expect(UserDefaults.standard.string(forKey: "frigateBaseURL") == emptyURL)
+            XCTAssertEqual(settingsStore.frigateBaseURL, emptyURL)
+            XCTAssertEqual(UserDefaults.standard.string(forKey: "frigateBaseURL"), emptyURL)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "frigateBaseURL")
@@ -163,10 +163,10 @@ struct SettingsStoreTests {
     
     // MARK: - Labels Management Tests
     
-    @Suite("Labels Management")
+    // @Suite("Labels Management")
     struct LabelsManagementTests {
         
-        @Test("Set and persist selected labels")
+        // @Test("Set and persist selected labels")
         func testSetSelectedLabels() async throws {
             let settingsStore = SettingsStore()
             let testLabels = Set(["person", "car", "dog"])
@@ -174,53 +174,53 @@ struct SettingsStoreTests {
             settingsStore.selectedLabels = testLabels
             
             // Verify the value is set in the store
-            #expect(settingsStore.selectedLabels == testLabels)
+            XCTAssertEqual(settingsStore.selectedLabels, testLabels)
             
             // Verify the value is persisted to UserDefaults
             let persistedLabels = UserDefaults.standard.array(forKey: "selectedLabels") as? [String] ?? []
-            #expect(Set(persistedLabels) == testLabels)
+            XCTAssertEqual(Set(persistedLabels), testLabels)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "selectedLabels")
         }
         
-        @Test("Add and remove labels")
-        func testAddRemoveLabels() async throws {
+    // @Test("Add and remove labels")
+    func testAddRemoveLabels() async throws {
             let settingsStore = SettingsStore()
             
             // Start with empty set
-            #expect(settingsStore.selectedLabels.isEmpty)
+            XCTAssertTrue(settingsStore.selectedLabels.isEmpty)
             
             // Add labels one by one
             settingsStore.selectedLabels.insert("person")
-            #expect(settingsStore.selectedLabels.contains("person"))
+            XCTAssertTrue(settingsStore.selectedLabels.contains("person"))
             
             settingsStore.selectedLabels.insert("car")
-            #expect(settingsStore.selectedLabels.contains("car"))
-            #expect(settingsStore.selectedLabels.count == 2)
+            XCTAssertTrue(settingsStore.selectedLabels.contains("car"))
+            XCTAssertEqual(settingsStore.selectedLabels.count, 2)
             
             // Remove a label
             settingsStore.selectedLabels.remove("person")
-            #expect(!settingsStore.selectedLabels.contains("person"))
-            #expect(settingsStore.selectedLabels.contains("car"))
-            #expect(settingsStore.selectedLabels.count == 1)
+            XCTAssertFalse(settingsStore.selectedLabels.contains("person"))
+            XCTAssertTrue(settingsStore.selectedLabels.contains("car"))
+            XCTAssertEqual(settingsStore.selectedLabels.count, 1)
             
             // Clear all labels
             settingsStore.selectedLabels.removeAll()
-            #expect(settingsStore.selectedLabels.isEmpty)
+            XCTAssertTrue(settingsStore.selectedLabels.isEmpty)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "selectedLabels")
         }
         
-        @Test("Update available labels")
-        func testUpdateAvailableLabels() async throws {
+    // @Test("Update available labels")
+    func testUpdateAvailableLabels() async throws {
             let settingsStore = SettingsStore()
             let testLabels = ["person", "car", "bicycle", "dog", "cat"]
             
             settingsStore.availableLabels = testLabels
             
-            #expect(settingsStore.availableLabels == testLabels)
+            XCTAssertEqual(settingsStore.availableLabels, testLabels)
             
             // Available labels are not persisted, so no UserDefaults check needed
         }
@@ -228,10 +228,10 @@ struct SettingsStoreTests {
     
     // MARK: - Zones Management Tests
     
-    @Suite("Zones Management")
+    // @Suite("Zones Management")
     struct ZonesManagementTests {
         
-        @Test("Set and persist selected zones")
+        // @Test("Set and persist selected zones")
         func testSetSelectedZones() async throws {
             let settingsStore = SettingsStore()
             let testZones = Set(["front_yard", "driveway", "backyard"])
@@ -239,28 +239,28 @@ struct SettingsStoreTests {
             settingsStore.selectedZones = testZones
             
             // Verify the value is set in the store
-            #expect(settingsStore.selectedZones == testZones)
+            XCTAssertEqual(settingsStore.selectedZones, testZones)
             
             // Verify the value is persisted to UserDefaults
             let persistedZones = UserDefaults.standard.array(forKey: "selectedZones") as? [String] ?? []
-            #expect(Set(persistedZones) == testZones)
+            XCTAssertEqual(Set(persistedZones), testZones)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "selectedZones")
         }
         
-        @Test("Update available zones")
-        func testUpdateAvailableZones() async throws {
+    // @Test("Update available zones")
+    func testUpdateAvailableZones() async throws {
             let settingsStore = SettingsStore()
             let testZones = ["front_yard", "driveway", "backyard", "porch", "garage"]
             
             settingsStore.availableZones = testZones
             
-            #expect(settingsStore.availableZones == testZones)
+            XCTAssertEqual(settingsStore.availableZones, testZones)
         }
         
-        @Test("Zone selection validation")
-        func testZoneSelectionValidation() async throws {
+    // @Test("Zone selection validation")
+    func testZoneSelectionValidation() async throws {
             let settingsStore = SettingsStore()
             
             // Set available zones
@@ -269,10 +269,10 @@ struct SettingsStoreTests {
             // Select some zones
             settingsStore.selectedZones = Set(["zone1", "zone3"])
             
-            #expect(settingsStore.selectedZones.count == 2)
-            #expect(settingsStore.selectedZones.contains("zone1"))
-            #expect(settingsStore.selectedZones.contains("zone3"))
-            #expect(!settingsStore.selectedZones.contains("zone2"))
+            XCTAssertEqual(settingsStore.selectedZones.count, 2)
+            XCTAssertTrue(settingsStore.selectedZones.contains("zone1"))
+            XCTAssertTrue(settingsStore.selectedZones.contains("zone3"))
+            XCTAssertFalse(settingsStore.selectedZones.contains("zone2"))
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "selectedZones")
@@ -281,10 +281,10 @@ struct SettingsStoreTests {
     
     // MARK: - Cameras Management Tests
     
-    @Suite("Cameras Management")
+    // @Suite("Cameras Management")
     struct CamerasManagementTests {
         
-        @Test("Set and persist selected cameras")
+        // @Test("Set and persist selected cameras")
         func testSetSelectedCameras() async throws {
             let settingsStore = SettingsStore()
             let testCameras = Set(["backyard", "cam1"])
@@ -292,33 +292,33 @@ struct SettingsStoreTests {
             settingsStore.selectedCameras = testCameras
             
             // Verify the value is set in the store
-            #expect(settingsStore.selectedCameras == testCameras)
+            XCTAssertEqual(settingsStore.selectedCameras, testCameras)
             
             // Verify the value is persisted to UserDefaults
             let persistedCameras = UserDefaults.standard.array(forKey: "selectedCameras") as? [String] ?? []
-            #expect(Set(persistedCameras) == testCameras)
+            XCTAssertEqual(Set(persistedCameras), testCameras)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "selectedCameras")
         }
         
-        @Test("Update available cameras")
-        func testUpdateAvailableCameras() async throws {
+    // @Test("Update available cameras")
+    func testUpdateAvailableCameras() async throws {
             let settingsStore = SettingsStore()
             let testCameras = ["front_door", "backyard", "garage", "driveway"]
             
             settingsStore.availableCameras = testCameras
             
-            #expect(settingsStore.availableCameras == testCameras)
+            XCTAssertEqual(settingsStore.availableCameras, testCameras)
         }
         
-        @Test("Manage camera IP addresses")
-        func testCameraIPAddresses() async throws {
+    // @Test("Manage camera IP addresses")
+    func testCameraIPAddresses() async throws {
             let settingsStore = SettingsStore()
             
             // Test default IP addresses
-            #expect(settingsStore.cameraIPAddresses["backyard"] == "192.168.0.210")
-            #expect(settingsStore.cameraIPAddresses["cam1"] == "192.168.0.211")
+            XCTAssertEqual(settingsStore.cameraIPAddresses["backyard"], "192.168.0.210")
+            XCTAssertEqual(settingsStore.cameraIPAddresses["cam1"], "192.168.0.211")
             
             // Update IP addresses
             var updatedIPs = settingsStore.cameraIPAddresses
@@ -327,13 +327,13 @@ struct SettingsStoreTests {
             
             settingsStore.cameraIPAddresses = updatedIPs
             
-            #expect(settingsStore.cameraIPAddresses["front_door"] == "192.168.0.212")
-            #expect(settingsStore.cameraIPAddresses["garage"] == "192.168.0.213")
+            XCTAssertEqual(settingsStore.cameraIPAddresses["front_door"], "192.168.0.212")
+            XCTAssertEqual(settingsStore.cameraIPAddresses["garage"], "192.168.0.213")
             
             // Verify persistence
             let persistedIPs = UserDefaults.standard.dictionary(forKey: "cameraIPAddresses") as? [String: String] ?? [:]
-            #expect(persistedIPs["front_door"] == "192.168.0.212")
-            #expect(persistedIPs["garage"] == "192.168.0.213")
+            XCTAssertEqual(persistedIPs["front_door"], "192.168.0.212")
+            XCTAssertEqual(persistedIPs["garage"], "192.168.0.213")
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "cameraIPAddresses")
@@ -342,10 +342,10 @@ struct SettingsStoreTests {
     
     // MARK: - Live Feed Settings Tests
     
-    @Suite("Live Feed Settings")
+    // @Suite("Live Feed Settings")
     struct LiveFeedSettingsTests {
         
-        @Test("Set and persist default stream quality")
+        // @Test("Set and persist default stream quality")
         func testDefaultStreamQuality() async throws {
             let settingsStore = SettingsStore()
             let qualities = ["sub", "main", "hd"]
@@ -353,27 +353,27 @@ struct SettingsStoreTests {
             for quality in qualities {
                 settingsStore.defaultStreamQuality = quality
                 
-                #expect(settingsStore.defaultStreamQuality == quality)
-                #expect(UserDefaults.standard.string(forKey: "defaultStreamQuality") == quality)
+                XCTAssertEqual(settingsStore.defaultStreamQuality, quality)
+                XCTAssertEqual(UserDefaults.standard.string(forKey: "defaultStreamQuality"), quality)
             }
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "defaultStreamQuality")
         }
         
-        @Test("Set and persist auto expand feeds")
-        func testAutoExpandFeeds() async throws {
+    // @Test("Set and persist auto expand feeds")
+    func testAutoExpandFeeds() async throws {
             let settingsStore = SettingsStore()
             
             // Test setting to true
             settingsStore.autoExpandFeeds = true
-            #expect(settingsStore.autoExpandFeeds == true)
-            #expect(UserDefaults.standard.bool(forKey: "autoExpandFeeds") == true)
+            XCTAssertTrue(settingsStore.autoExpandFeeds)
+            XCTAssertTrue(UserDefaults.standard.bool(forKey: "autoExpandFeeds") == true)
             
             // Test setting to false
             settingsStore.autoExpandFeeds = false
-            #expect(settingsStore.autoExpandFeeds == false)
-            #expect(UserDefaults.standard.bool(forKey: "autoExpandFeeds") == false)
+            XCTAssertFalse(settingsStore.autoExpandFeeds)
+            XCTAssertFalse(UserDefaults.standard.bool(forKey: "autoExpandFeeds") == false)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "autoExpandFeeds")
@@ -382,10 +382,10 @@ struct SettingsStoreTests {
     
     // MARK: - Authentication Settings Tests
     
-    @Suite("Authentication Settings")
+    // @Suite("Authentication Settings")
     struct AuthenticationSettingsTests {
         
-        @Test("Set and persist camera username")
+        // @Test("Set and persist camera username")
         func testCameraUsername() async throws {
             let settingsStore = SettingsStore()
             let testUsernames = ["admin", "user", "camera_user", ""]
@@ -393,47 +393,47 @@ struct SettingsStoreTests {
             for username in testUsernames {
                 settingsStore.cameraUsername = username
                 
-                #expect(settingsStore.cameraUsername == username)
-                #expect(UserDefaults.standard.string(forKey: "cameraUsername") == username)
+                XCTAssertEqual(settingsStore.cameraUsername, username)
+                XCTAssertEqual(UserDefaults.standard.string(forKey: "cameraUsername"), username)
             }
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "cameraUsername")
         }
         
-        @Test("Set and persist camera password")
-        func testCameraPassword() async throws {
+    // @Test("Set and persist camera password")
+    func testCameraPassword() async throws {
             let settingsStore = SettingsStore()
             let testPasswords = ["password123", "secure_pass", "", "complex@Pass#1"]
             
             for password in testPasswords {
                 settingsStore.cameraPassword = password
                 
-                #expect(settingsStore.cameraPassword == password)
-                #expect(UserDefaults.standard.string(forKey: "cameraPassword") == password)
+                XCTAssertEqual(settingsStore.cameraPassword, password)
+                XCTAssertEqual(UserDefaults.standard.string(forKey: "cameraPassword"), password)
             }
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "cameraPassword")
         }
         
-        @Test("Credential validation")
-        func testCredentialValidation() async throws {
+    // @Test("Credential validation")
+    func testCredentialValidation() async throws {
             let settingsStore = SettingsStore()
             
             // Test with valid credentials
             settingsStore.cameraUsername = "validuser"
             settingsStore.cameraPassword = "validpass"
             
-            #expect(!settingsStore.cameraUsername.isEmpty)
-            #expect(!settingsStore.cameraPassword.isEmpty)
+            XCTAssertFalse(settingsStore.cameraUsername.isEmpty)
+            XCTAssertFalse(settingsStore.cameraPassword.isEmpty)
             
             // Test with empty credentials
             settingsStore.cameraUsername = ""
             settingsStore.cameraPassword = ""
             
-            #expect(settingsStore.cameraUsername.isEmpty)
-            #expect(settingsStore.cameraPassword.isEmpty)
+            XCTAssertTrue(settingsStore.cameraUsername.isEmpty)
+            XCTAssertTrue(settingsStore.cameraPassword.isEmpty)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "cameraUsername")
@@ -443,10 +443,10 @@ struct SettingsStoreTests {
     
     // MARK: - Frigate Version Tests
     
-    @Suite("Frigate Version Management")
+    // @Suite("Frigate Version Management")
     struct FrigateVersionTests {
         
-        @Test("Fetch Frigate version success")
+        // @Test("Fetch Frigate version success")
         func testFetchFrigateVersionSuccess() async throws {
             let settingsStore = SettingsStore()
             
@@ -455,11 +455,11 @@ struct SettingsStoreTests {
             
             await settingsStore.fetchFrigateVersion(apiClient: mockClient)
             
-            #expect(settingsStore.frigateVersion == "0.13.2")
+            XCTAssertEqual(settingsStore.frigateVersion, "0.13.2")
         }
         
-        @Test("Fetch Frigate version network error")
-        func testFetchFrigateVersionNetworkError() async throws {
+    // @Test("Fetch Frigate version network error")
+    func testFetchFrigateVersionNetworkError() async throws {
             let settingsStore = SettingsStore()
             
             // Create a mock API client that simulates network error
@@ -467,80 +467,80 @@ struct SettingsStoreTests {
             
             await settingsStore.fetchFrigateVersion(apiClient: mockClient)
             
-            #expect(settingsStore.frigateVersion.contains("Error: Network issue"))
+            XCTAssertTrue(settingsStore.frigateVersion.contains("Error: Network issue"))
         }
         
-        @Test("Fetch Frigate version invalid URL error")
-        func testFetchFrigateVersionInvalidURL() async throws {
+    // @Test("Fetch Frigate version invalid URL error")
+    func testFetchFrigateVersionInvalidURL() async throws {
             let settingsStore = SettingsStore()
             
             let mockClient = MockFrigateAPIClient(shouldSucceed: false, mockError: .invalidURL)
             
             await settingsStore.fetchFrigateVersion(apiClient: mockClient)
             
-            #expect(settingsStore.frigateVersion == "Error: Invalid URL")
+            XCTAssertEqual(settingsStore.frigateVersion, "Error: Invalid URL")
         }
         
-        @Test("Fetch Frigate version decoding error")
-        func testFetchFrigateVersionDecodingError() async throws {
+    // @Test("Fetch Frigate version decoding error")
+    func testFetchFrigateVersionDecodingError() async throws {
             let settingsStore = SettingsStore()
             
             let mockClient = MockFrigateAPIClient(shouldSucceed: false, mockError: .decodingError(NSError(domain: "test", code: -1)))
             
             await settingsStore.fetchFrigateVersion(apiClient: mockClient)
             
-            #expect(settingsStore.frigateVersion == "Error: Could not decode version")
+            XCTAssertEqual(settingsStore.frigateVersion, "Error: Could not decode version")
         }
         
-        @Test("Fetch Frigate version unsupported version")
-        func testFetchFrigateVersionUnsupported() async throws {
+    // @Test("Fetch Frigate version unsupported version")
+    func testFetchFrigateVersionUnsupported() async throws {
             let settingsStore = SettingsStore()
             
             let mockClient = MockFrigateAPIClient(shouldSucceed: false, mockError: .unsupportedVersion("0.1.0"))
             
             await settingsStore.fetchFrigateVersion(apiClient: mockClient)
             
-            #expect(settingsStore.frigateVersion == "Error: Unsupported version 0.1.0")
+            XCTAssertEqual(settingsStore.frigateVersion, "Error: Unsupported version 0.1.0")
         }
         
-        @Test("Fetch Frigate version invalid response")
-        func testFetchFrigateVersionInvalidResponse() async throws {
+    // @Test("Fetch Frigate version invalid response")
+    func testFetchFrigateVersionInvalidResponse() async throws {
             let settingsStore = SettingsStore()
             
             let mockClient = MockFrigateAPIClient(shouldSucceed: false, mockError: .invalidResponse)
             
             await settingsStore.fetchFrigateVersion(apiClient: mockClient)
             
-            #expect(settingsStore.frigateVersion == "Error: Invalid response format")
+            XCTAssertEqual(settingsStore.frigateVersion, "Error: Invalid response format")
         }
         
-        @Test("Fetch Frigate version unknown error")
-        func testFetchFrigateVersionUnknownError() async throws {
+    // @Test("Fetch Frigate version unknown error")
+    func testFetchFrigateVersionUnknownError() async throws {
             let settingsStore = SettingsStore()
             
             let mockClient = MockFrigateAPIClient(shouldSucceed: false, mockError: nil, unknownError: NSError(domain: "unknown", code: -999))
             
             await settingsStore.fetchFrigateVersion(apiClient: mockClient)
             
-            #expect(settingsStore.frigateVersion.contains("Error:"))
+            XCTAssertTrue(settingsStore.frigateVersion.contains("Error:"))
         }
     }
     
     // MARK: - ObservableObject Tests
     
-    @Suite("ObservableObject Behavior")
+    // @Suite("ObservableObject Behavior")
     struct ObservableObjectTests {
         
-        @Test("Settings store is ObservableObject")
+        // @Test("Settings store is ObservableObject")
         func testObservableObjectConformance() async throws {
             let settingsStore = SettingsStore()
             
             // Verify that SettingsStore conforms to ObservableObject
-            #expect(settingsStore is ObservableObject)
+            XCTAssertTrue(settingsStore is any ObservableObject)
         }
         
-        @Test("Published properties trigger updates")
-        func testPublishedPropertiesUpdates() async throws {
+    // @Test("Published properties trigger updates")
+    func testPublishedPropertiesUpdates() async throws {
             let settingsStore = SettingsStore()
             var updateCount = 0
             
@@ -557,7 +557,7 @@ struct SettingsStoreTests {
             // Give the publisher time to emit
             try await Task.sleep(nanoseconds: 100_000_000) // 0.1 seconds
             
-            #expect(updateCount > 0)
+            XCTAssertGreaterThan(updateCount, 0)
             
             cancellable.cancel()
             
@@ -567,8 +567,8 @@ struct SettingsStoreTests {
             UserDefaults.standard.removeObject(forKey: "autoExpandFeeds")
         }
         
-        @Test("Non-published properties don't trigger updates")
-        func testNonPublishedProperties() async throws {
+    // @Test("Non-published properties don't trigger updates")
+    func testNonPublishedProperties() async throws {
             let settingsStore = SettingsStore()
             var updateCount = 0
             
@@ -590,10 +590,10 @@ struct SettingsStoreTests {
     
     // MARK: - Data Integrity Tests
     
-    @Suite("Data Integrity")
+    // @Suite("Data Integrity")
     struct DataIntegrityTests {
         
-        @Test("Concurrent updates are handled safely")
+        // @Test("Concurrent updates are handled safely")
         func testConcurrentUpdates() async throws {
             let settingsStore = SettingsStore()
             
@@ -609,8 +609,8 @@ struct SettingsStoreTests {
             }
             
             // Verify final state is consistent
-            #expect(!settingsStore.frigateBaseURL.isEmpty)
-            #expect(settingsStore.selectedLabels.count <= 1)
+            XCTAssertFalse(settingsStore.frigateBaseURL.isEmpty)
+            XCTAssertLessThanOrEqual(settingsStore.selectedLabels.count, 1)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "frigateBaseURL")
@@ -618,8 +618,8 @@ struct SettingsStoreTests {
             UserDefaults.standard.removeObject(forKey: "autoExpandFeeds")
         }
         
-        @Test("Large data sets are handled correctly")
-        func testLargeDataSets() async throws {
+    // @Test("Large data sets are handled correctly")
+    func testLargeDataSets() async throws {
             let settingsStore = SettingsStore()
             
             // Create large sets of data
@@ -632,13 +632,13 @@ struct SettingsStoreTests {
             settingsStore.selectedCameras = largeCameraSet
             
             // Verify all data is preserved
-            #expect(settingsStore.selectedLabels.count == 1000)
-            #expect(settingsStore.selectedZones.count == 500)
-            #expect(settingsStore.selectedCameras.count == 100)
+            XCTAssertEqual(settingsStore.selectedLabels.count, 1000)
+            XCTAssertEqual(settingsStore.selectedZones.count, 500)
+            XCTAssertEqual(settingsStore.selectedCameras.count, 100)
             
             // Verify persistence works with large data
             let persistedLabels = Set(UserDefaults.standard.array(forKey: "selectedLabels") as? [String] ?? [])
-            #expect(persistedLabels.count == 1000)
+            XCTAssertEqual(persistedLabels.count, 1000)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "selectedLabels")
@@ -646,8 +646,8 @@ struct SettingsStoreTests {
             UserDefaults.standard.removeObject(forKey: "selectedCameras")
         }
         
-        @Test("Special characters in settings are handled")
-        func testSpecialCharacters() async throws {
+    // @Test("Special characters in settings are handled")
+    func testSpecialCharacters() async throws {
             let settingsStore = SettingsStore()
             
             // Test with special characters and Unicode
@@ -660,14 +660,14 @@ struct SettingsStoreTests {
             settingsStore.cameraPassword = specialPassword
             
             // Verify values are preserved correctly
-            #expect(settingsStore.frigateBaseURL == specialURL)
-            #expect(settingsStore.cameraUsername == specialUsername)
-            #expect(settingsStore.cameraPassword == specialPassword)
+            XCTAssertEqual(settingsStore.frigateBaseURL, specialURL)
+            XCTAssertEqual(settingsStore.cameraUsername, specialUsername)
+            XCTAssertEqual(settingsStore.cameraPassword, specialPassword)
             
             // Verify persistence with special characters
-            #expect(UserDefaults.standard.string(forKey: "frigateBaseURL") == specialURL)
-            #expect(UserDefaults.standard.string(forKey: "cameraUsername") == specialUsername)
-            #expect(UserDefaults.standard.string(forKey: "cameraPassword") == specialPassword)
+            XCTAssertEqual(UserDefaults.standard.string(forKey: "frigateBaseURL"), specialURL)
+            XCTAssertEqual(UserDefaults.standard.string(forKey: "cameraUsername"), specialUsername)
+            XCTAssertEqual(UserDefaults.standard.string(forKey: "cameraPassword"), specialPassword)
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "frigateBaseURL")
@@ -678,10 +678,10 @@ struct SettingsStoreTests {
     
     // MARK: - Performance Tests
     
-    @Suite("Performance Testing")
+    // @Suite("Performance Testing")
     struct PerformanceTests {
         
-        @Test("Settings initialization performance")
+        // @Test("Settings initialization performance")
         func testInitializationPerformance() async throws {
             let startTime = Date()
             
@@ -693,11 +693,11 @@ struct SettingsStoreTests {
             let duration = endTime.timeIntervalSince(startTime)
             
             print("SettingsStore initialization (100x): \(duration)s")
-            #expect(duration < 1.0) // Should initialize quickly
+            XCTAssertLessThan(duration, 1.0) // Should initialize quickly
         }
         
-        @Test("Settings update performance")
-        func testUpdatePerformance() async throws {
+    // @Test("Settings update performance")
+    func testUpdatePerformance() async throws {
             let settingsStore = SettingsStore()
             let startTime = Date()
             
@@ -711,7 +711,7 @@ struct SettingsStoreTests {
             let duration = endTime.timeIntervalSince(startTime)
             
             print("Settings updates (1000x): \(duration)s")
-            #expect(duration < 5.0) // Should update quickly even with persistence
+            XCTAssertLessThan(duration, 5.0) // Should update quickly even with persistence
             
             // Cleanup
             UserDefaults.standard.removeObject(forKey: "frigateBaseURL")
@@ -719,8 +719,8 @@ struct SettingsStoreTests {
             UserDefaults.standard.removeObject(forKey: "autoExpandFeeds")
         }
         
-        @Test("Version fetch performance")
-        func testVersionFetchPerformance() async throws {
+    // @Test("Version fetch performance")
+    func testVersionFetchPerformance() async throws {
             let settingsStore = SettingsStore()
             let mockClient = MockFrigateAPIClient(shouldSucceed: true, mockVersion: "0.13.2")
             
@@ -734,7 +734,7 @@ struct SettingsStoreTests {
             let duration = endTime.timeIntervalSince(startTime)
             
             print("Version fetch (10x): \(duration)s")
-            #expect(duration < 2.0)
+            XCTAssertLessThan(duration, 2.0)
         }
     }
 }

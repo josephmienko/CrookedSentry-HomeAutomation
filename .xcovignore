@@ -1,0 +1,18 @@
+# Debug utilities
+*Debug*.swift
+*Debugger*.swift
+
+# Configuration
+*Config.swift
+Colors.swift
+Material3Components.swift
+
+# Previews
+*Preview*.swift
+
+# Simple models
+Item.swift
+
+# UI-only components
+NavigationDrawer.swift
+VPNComponents.swift

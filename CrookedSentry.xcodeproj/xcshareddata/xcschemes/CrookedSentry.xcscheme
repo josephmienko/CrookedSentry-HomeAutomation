@@ -30,7 +30,8 @@
       shouldUseLaunchSchemeArgsEnv = "YES">
       <TestPlans>
          <TestPlanReference
-            reference = "container:CrookedSentry.xctestplan">
+            reference = "container:CrookedSentry.xctestplan"
+            default = "YES">
          </TestPlanReference>
       </TestPlans>
       <Testables>

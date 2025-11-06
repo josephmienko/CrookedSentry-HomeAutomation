@@ -42,3 +42,12 @@ Packages/
 *.app
 *.dSYM.zip
 *.dSYM
+
+# Xcode build / test result artifacts (avoid committing CI/local build outputs)
+build/
+*.xcresult
+*.xcactivitylog
+
+# Per-user workspace state
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/

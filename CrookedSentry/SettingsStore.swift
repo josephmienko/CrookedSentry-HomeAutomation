@@ -62,6 +62,31 @@ class SettingsStore: ObservableObject {
         }
     }
 
+    // Advanced Frigate API headers (for proxies requiring CSRF/cookies)
+    @Published var frigateCsrfToken: String {
+        didSet {
+            UserDefaults.standard.set(frigateCsrfToken, forKey: "frigateCsrfToken")
+        }
+    }
+    @Published var frigateCookie: String {
+        didSet {
+            UserDefaults.standard.set(frigateCookie, forKey: "frigateCookie")
+        }
+    }
+    // Multi-line "key: value" entries, one per line
+    @Published var frigateExtraHeaders: String {
+        didSet {
+            UserDefaults.standard.set(frigateExtraHeaders, forKey: "frigateExtraHeaders")
+        }
+    }
+
+    // CrookedReviewState Node.js API base URL
+    @Published var crookedReviewStateBaseURL: String {
+        didSet {
+            UserDefaults.standard.set(crookedReviewStateBaseURL, forKey: "crookedReviewStateBaseURL")
+        }
+    }
+
     init() {
         self.frigateBaseURL = UserDefaults.standard.string(forKey: "frigateBaseURL") ?? "http://192.168.0.200:5000"
         
@@ -101,6 +126,21 @@ class SettingsStore: ObservableObject {
         // Initialize camera credentials
         self.cameraUsername = UserDefaults.standard.string(forKey: "cameraUsername") ?? "admin"
         self.cameraPassword = UserDefaults.standard.string(forKey: "cameraPassword") ?? "DavidAlan"
+
+        // Initialize advanced Frigate API headers
+        self.frigateCsrfToken = UserDefaults.standard.string(forKey: "frigateCsrfToken") ?? ""
+        self.frigateCookie = UserDefaults.standard.string(forKey: "frigateCookie") ?? ""
+        self.frigateExtraHeaders = UserDefaults.standard.string(forKey: "frigateExtraHeaders") ?? ""
+        
+        // Initialize CrookedReviewState Node.js API URL
+        self.crookedReviewStateBaseURL = UserDefaults.standard.string(forKey: "crookedReviewStateBaseURL") ?? "http://localhost:3001"
+    }
+
+    /// Nonisolated convenience initializer for tests and non-actor contexts.
+    /// It forwards construction to the main actor to respect actor-isolation while
+    /// allowing callers to create a SettingsStore without `await` in test code.
+    nonisolated convenience init(forTesting: Bool = true) {
+        self.init()
     }
     
     @MainActor

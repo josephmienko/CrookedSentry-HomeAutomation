@@ -7,10 +7,13 @@
 
 import SwiftUI
 import Combine
+import UIKit
 
 struct HomeView: View {
     let events: [FrigateEvent]
     let inProgressEvents: [FrigateEvent]
+    // Navigate to different app sections (e.g., CCTV/Security, Climate/HVAC) with optional Security tab
+    let onNavigateToSection: (AppSection, SecurityTab?) -> Void
     
     @EnvironmentObject var settingsStore: SettingsStore
     @State private var currentTime = Date()
@@ -25,9 +28,6 @@ struct HomeView: View {
                 
                 // Quick Stats Cards
                 quickStatsSection
-                
-                // Quick Actions
-                quickActionsSection
                 
                 // Recent Activity
                 recentActivitySection
@@ -44,7 +44,7 @@ struct HomeView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(greeting)
+                    Text(greetingWithName)
                         .font(.title2)
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
@@ -77,23 +77,26 @@ struct HomeView: View {
                     value: "\(events.count)",
                     subtitle: events.isEmpty ? "None loaded" : "Available",
                     icon: "video.circle.fill",
-                    color: events.isEmpty ? Color.error : Color.primary
+                    color: events.isEmpty ? Color.error : Color.primary,
+                    onTap: { onNavigateToSection(.security, .events) }
                 )
                 
                 QuickStatCard(
-                    title: "Cameras",
+                    title: "Live Feed",
                     value: "2",
                     subtitle: "Active",
                     icon: "video.fill",
-                    color: .primary
+                    color: .primary,
+                    onTap: { onNavigateToSection(.security, .live) }
                 )
                 
                 QuickStatCard(
-                    title: "Temperature",
+                    title: "Inside",
                     value: "72°F",
                     subtitle: "Comfortable",
                     icon: "thermometer",
-                    color: .secondary
+                    color: .secondary,
+                    onTap: { onNavigateToSection(.climate, nil) }
                 )
                 
                 WeatherOutsideCard()
@@ -199,13 +202,16 @@ struct HomeView: View {
                 VStack(spacing: 8) {
                     // Show actual recent events when available
                     ForEach(events.prefix(4)) { event in
-                        ActivityItem(
-                            title: "\(event.label.capitalized) detected in \(event.camera)",
-                            subtitle: event.zones.isEmpty ? "No zones" : "Zones: \(event.zones.joined(separator: ", "))",
-                            time: formatEventTime(event.start_time),
-                            icon: getIconForLabel(event.label),
-                            color: .primary
-                        )
+                        Button(action: { onNavigateToSection(.security, .events) }) {
+                            ActivityItem(
+                                title: "\(event.friendlyLabelName) detected in \(event.friendlyCameraName)",
+                                subtitle: event.zones.isEmpty ? "No zones" : "Zones: \(event.friendlyZoneNames)",
+                                time: formatEventTime(event.start_time),
+                                icon: getIconForLabel(event.label),
+                                color: .primary
+                            )
+                        }
+                        .buttonStyle(PlainButtonStyle())
                     }
                 }
             }
@@ -265,66 +271,37 @@ struct HomeView: View {
             return "Good Night"
         }
     }
+
+    private var greetingWithName: String {
+        let deviceName = UIDevice.current.name
+        return "\(greeting), \(deviceName)!"
+    }
 }
 
 struct WeatherOutsideCard: View {
-    @State private var isIconPressed = false
-    
     var body: some View {
         HStack(alignment: .top, spacing: 8) {
             // Left side - Text content
             VStack(alignment: .leading, spacing: 2) {
-                Text("Weather")
+                Text("Outside")
                     .font(.caption)
                     .fontWeight(.medium)
                     .foregroundColor(.onSurfaceVariant)
+                    .lineLimit(1)
                 
                 Text("45°F")
                     .font(.title)
                     .fontWeight(.bold)
                     .foregroundColor(.onSurface)
+                    .lineLimit(1)
                 
                 Text("Down 5° tomorrow")
                     .font(.caption2)
                     .foregroundColor(.onSurfaceVariant)
+                    .lineLimit(1)
             }
             
             Spacer()
-            
-            // Right side - Tonal button with icon
-            Button(action: {
-                // Icon tap action (could show weather details, etc.)
-            }) {
-                Image(systemName: "thermometer.medium")
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(Color.onTertiaryContainer)
-                    .frame(width: 52, height: 40)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.tertiaryContainer)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.onTertiaryContainer.opacity(isIconPressed ? 0.1 : 0.0))
-                            )
-                    )
-            }
-            .buttonStyle(PlainButtonStyle())
-            .scaleEffect(isIconPressed ? 0.95 : 1.0)
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        if !isIconPressed {
-                            withAnimation(.easeInOut(duration: 0.1)) {
-                                isIconPressed = true
-                            }
-                        }
-                    }
-                    .onEnded { _ in
-                        withAnimation(.easeInOut(duration: 0.1)) {
-                            isIconPressed = false
-                        }
-                    }
-            )
         }
         .padding()
         .background(
@@ -340,10 +317,12 @@ struct QuickStatCard: View {
     let subtitle: String
     let icon: String
     let color: Color
+    var onTap: (() -> Void)? = nil
     @State private var isIconPressed = false
+    @State private var isPressed = false
     
     var body: some View {
-        HStack(alignment: .top, spacing: 8) {
+        let content = HStack(alignment: .top, spacing: 8) {
             // Left side - Text content
             VStack(alignment: .leading, spacing: 2) {
                 Text(title)
@@ -363,46 +342,47 @@ struct QuickStatCard: View {
             
             Spacer()
             
-            // Right side - Tonal button with icon
-            Button(action: {
-                // Icon tap action (could show details, etc.)
-            }) {
-                Image(systemName: icon)
-                    .font(.system(size: 18, weight: .medium))
-                    .foregroundColor(Color.onSecondaryContainer)
-                    .frame(width: 52, height: 40)
-                    .background(
-                        RoundedRectangle(cornerRadius: 20)
-                            .fill(Color.secondaryContainer)
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 20)
-                                    .fill(Color.onSecondaryContainer.opacity(isIconPressed ? 0.1 : 0.0))
-                            )
-                    )
-            }
-            .buttonStyle(PlainButtonStyle())
-            .scaleEffect(isIconPressed ? 0.95 : 1.0)
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        if !isIconPressed {
-                            withAnimation(.easeInOut(duration: 0.1)) {
-                                isIconPressed = true
-                            }
-                        }
-                    }
-                    .onEnded { _ in
-                        withAnimation(.easeInOut(duration: 0.1)) {
-                            isIconPressed = false
-                        }
-                    }
-            )
+            // Right side - decorative icon pill
+            Image(systemName: icon)
+                .font(.system(size: 18, weight: .medium))
+                .foregroundColor(Color.onSecondaryContainer)
+                .frame(width: 52, height: 40)
+                .background(
+                    RoundedRectangle(cornerRadius: 20)
+                        .fill(Color.secondaryContainer)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 20)
+                                .fill(Color.onSecondaryContainer.opacity((onTap != nil && isPressed) ? 0.1 : 0.0))
+                        )
+                )
         }
         .padding()
         .background(
             RoundedRectangle(cornerRadius: 12)
                 .fill(Color.surfaceContainerHigh)
         )
+        
+        Group {
+            if let onTap = onTap {
+                Button(action: onTap) { content }
+                    .buttonStyle(PlainButtonStyle())
+                    .scaleEffect(isPressed ? 0.98 : 1.0)
+                    .animation(.easeInOut(duration: 0.1), value: isPressed)
+                    .simultaneousGesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { _ in
+                                if !isPressed {
+                                    withAnimation(.easeInOut(duration: 0.1)) { isPressed = true }
+                                }
+                            }
+                            .onEnded { _ in
+                                withAnimation(.easeInOut(duration: 0.1)) { isPressed = false }
+                            }
+                    )
+            } else {
+                content
+            }
+        }
     }
 }
 
@@ -508,13 +488,13 @@ struct HomeView_Previews: PreviewProvider {
     static var previews: some View {
         Group {
             // Light Mode Preview
-            HomeView(events: [], inProgressEvents: [])
+            HomeView(events: [], inProgressEvents: [], onNavigateToSection: { _, _ in })
                 .environmentObject(SettingsStore())
                 .preferredColorScheme(.light)
                 .previewDisplayName("Light Mode")
             
             // Dark Mode Preview
-            HomeView(events: [], inProgressEvents: [])
+            HomeView(events: [], inProgressEvents: [], onNavigateToSection: { _, _ in })
                 .environmentObject(SettingsStore())
                 .preferredColorScheme(.dark)
                 .previewDisplayName("Dark Mode")

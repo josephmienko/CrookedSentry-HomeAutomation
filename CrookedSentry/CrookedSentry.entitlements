@@ -8,5 +8,9 @@
 	<string>CrookedSentry needs local network access to connect to your self-hosted Frigate server and camera feeds.</string>
 	<key>NSPhotoLibraryAddUsageDescription</key>
 	<string>Save event snapshots from your security cameras to your photo library.</string>
+	<key>com.apple.developer.applesignin</key>
+	<array>
+		<string>Default</string>
+	</array>
 </dict>
 </plist>

@@ -207,7 +207,7 @@ If you have questions or concerns about this privacy policy or how the app handl
 
 **Developer:** Joseph Mienko
 
-**Email:** [Your Email Address]
+**Email:** joseph.mienko@icloud.com
 
 **GitHub:** https://github.com/josephmienko/CrookedSentry-HomeAutomation
 
